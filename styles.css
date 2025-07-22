@@ -1,5 +1,37 @@
 /* 科技风拟物风格新闻页面样式 */
 
+/* CSS变量定义 - 暗黑模式 */
+:root {
+    --bg-primary: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+    --bg-secondary: rgba(255, 255, 255, 0.05);
+    --bg-card: rgba(255, 255, 255, 0.08);
+    --text-primary: #ffffff;
+    --text-secondary: #a0a0a0;
+    --text-muted: #888;
+    --border-color: rgba(255, 255, 255, 0.1);
+    --accent-color: #00d4ff;
+    --accent-secondary: #ff00ff;
+    --accent-tertiary: #00ff88;
+    --shadow-color: rgba(0, 0, 0, 0.3);
+    --backdrop-blur: blur(15px);
+}
+
+/* 白天模式 */
+[data-theme="light"] {
+    --bg-primary: linear-gradient(135deg, #ffffff 0%, #f7fafc 50%, #edf2f7 100%);
+    --bg-secondary: rgba(0, 0, 0, 0.08);
+    --bg-card: rgba(255, 255, 255, 0.95);
+    --text-primary: #1a1a1a;
+    --text-secondary: #2d3748;
+    --text-muted: #4a5568;
+    --border-color: rgba(0, 0, 0, 0.15);
+    --accent-color: #2b6cb0;
+    --accent-secondary: #c53030;
+    --accent-tertiary: #2f855a;
+    --shadow-color: rgba(0, 0, 0, 0.15);
+    --backdrop-blur: blur(20px);
+}
+
 /* 全局样式 */
 * {
     margin: 0;
@@ -9,11 +41,12 @@
 
 body {
     font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
-    color: #ffffff;
+    background: var(--bg-primary);
+    color: var(--text-primary);
     min-height: 100vh;
     overflow-x: hidden;
     position: relative;
+    transition: background 0.3s ease, color 0.3s ease;
 }
 
 /* 动态背景效果 */
@@ -51,18 +84,19 @@ body::before {
 
 /* 头部样式 */
 header {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--bg-secondary);
+    backdrop-filter: var(--backdrop-blur);
+    border: 1px solid var(--border-color);
     border-radius: 20px;
     padding: 25px 35px;
     margin-bottom: 30px;
     box-shadow: 
-        0 8px 32px rgba(0, 0, 0, 0.3),
+        0 8px 32px var(--shadow-color),
         inset 0 1px 0 rgba(255, 255, 255, 0.1),
         inset 0 -1px 0 rgba(0, 0, 0, 0.1);
     position: relative;
     overflow: hidden;
+    transition: all 0.3s ease;
 }
 
 /* 移除过于显眼的shimmer动画 */
@@ -118,8 +152,8 @@ header {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(255, 255, 255, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
     transition: .4s;
     border-radius: 24px;
     backdrop-filter: blur(10px);
@@ -139,20 +173,20 @@ header {
 }
 
 input:checked + .slider {
-    background: linear-gradient(135deg, #00d4ff, #0099cc);
+    background: linear-gradient(135deg, var(--accent-color), #0099cc);
     border-color: rgba(0, 212, 255, 0.5);
     box-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
 }
 
 input:checked + .slider:before {
     transform: translateX(26px);
-    background: #ffffff;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    background: var(--text-primary);
+    box-shadow: 0 2px 8px var(--shadow-color);
 }
 
 .switch-label {
     font-size: 14px;
-    color: #a0a0a0;
+    color: var(--text-secondary);
     font-weight: 500;
 }
 
@@ -206,23 +240,24 @@ input:checked + .slider:before {
 
 .city-name {
     font-size: 11px;
-    font-weight: 500;
-    color: #00d4ff;
+    font-weight: 700;
+    color: var(--text-primary);
     margin-bottom: 2px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .time-date {
     font-size: 10px;
-    color: #a0a0a0;
+    color: var(--text-secondary);
     margin-bottom: 1px;
     font-weight: 400;
 }
 
 .time-clock {
     font-size: 12px;
-    color: #ffffff;
+    color: var(--text-primary);
     font-weight: 600;
     font-family: 'SF Pro Display', monospace;
 }
@@ -253,18 +288,19 @@ input:checked + .slider:before {
 
 /* 主要内容区域 */
 .news-container {
-    background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(25px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--bg-card);
+    backdrop-filter: var(--backdrop-blur);
+    border: 1px solid var(--border-color);
     border-radius: 25px;
     padding: 40px;
     box-shadow: 
-        0 20px 60px rgba(0, 0, 0, 0.4),
+        0 20px 60px var(--shadow-color),
         inset 0 1px 0 rgba(255, 255, 255, 0.1),
         inset 0 -1px 0 rgba(0, 0, 0, 0.1);
     position: relative;
     overflow: hidden;
     min-height: 600px;
+    transition: all 0.3s ease;
 }
 
 .news-container::before {
@@ -283,9 +319,9 @@ input:checked + .slider:before {
 }
 
 .news-item {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(15px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--bg-secondary);
+    backdrop-filter: var(--backdrop-blur);
+    border: 1px solid var(--border-color);
     border-radius: 20px;
     padding: 25px;
     margin-bottom: 20px;
@@ -320,7 +356,7 @@ input:checked + .slider:before {
     font-weight: 600;
     line-height: 1.3;
     margin-bottom: 15px;
-    color: #ffffff;
+    color: var(--text-primary);
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
@@ -334,17 +370,17 @@ input:checked + .slider:before {
 }
 
 .news-meta span {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--bg-secondary);
     padding: 4px 12px;
     border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-color);
     backdrop-filter: blur(5px);
 }
 
 .news-item p {
     font-size: 16px;
     line-height: 1.6;
-    color: #b0b0b0;
+    color: var(--text-secondary);
     margin: 0;
 }
 
@@ -607,18 +643,19 @@ input:checked + .slider:before {
     bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(15px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--bg-secondary);
+    backdrop-filter: var(--backdrop-blur);
+    border: 1px solid var(--border-color);
     border-radius: 25px;
     padding: 15px 25px;
     font-size: 12px;
-    color: #888;
+    color: var(--text-muted);
     z-index: 100;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 8px 25px var(--shadow-color);
     display: flex;
     align-items: center;
     gap: 20px;
+    transition: all 0.3s ease;
 }
 
 .hint-text {
@@ -650,7 +687,7 @@ input:checked + .slider:before {
 
 .auto-refresh-control.inline-control .switch-label {
     font-size: 12px;
-    color: #888;
+    color: var(--text-muted);
     white-space: nowrap;
 }
 
@@ -697,6 +734,60 @@ input:checked + .slider:before {
 
 .back-to-top:hover svg {
     transform: translateY(-2px);
+}
+
+/* 主题切换按钮 */
+.theme-toggle {
+    position: fixed;
+    bottom: 170px;
+    right: 30px;
+    width: 50px;
+    height: 50px;
+    background: var(--bg-card);
+    backdrop-filter: var(--backdrop-blur);
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    color: var(--text-primary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px var(--shadow-color);
+}
+
+.theme-toggle:hover {
+    background: var(--bg-secondary);
+    border-color: var(--accent-color);
+    box-shadow: 0 4px 20px rgba(0, 212, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+.theme-toggle .sun-icon {
+    display: block;
+    transition: all 0.3s ease;
+}
+
+.theme-toggle .moon-icon {
+    display: none;
+    transition: all 0.3s ease;
+}
+
+[data-theme="light"] .theme-toggle .sun-icon {
+    display: none;
+}
+
+[data-theme="light"] .theme-toggle .moon-icon {
+    display: block;
+}
+
+.theme-toggle svg {
+    transition: transform 0.3s ease;
+}
+
+.theme-toggle:hover svg {
+    transform: rotate(180deg);
 }
 
 /* 响应式设计 */

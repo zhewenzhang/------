@@ -483,6 +483,33 @@ function setupKeyboardShortcuts() {
     });
 }
 
+// 主题切换功能
+function setupThemeToggle() {
+    const themeToggle = document.getElementById('themeToggle');
+    const body = document.body;
+    
+    // 从本地存储获取主题设置
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    if (savedTheme === 'light') {
+        body.setAttribute('data-theme', 'light');
+    }
+    
+    // 主题切换事件
+    themeToggle.addEventListener('click', () => {
+        const currentTheme = body.getAttribute('data-theme');
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        
+        if (newTheme === 'light') {
+            body.setAttribute('data-theme', 'light');
+        } else {
+            body.removeAttribute('data-theme');
+        }
+        
+        // 保存到本地存储
+        localStorage.setItem('theme', newTheme);
+    });
+}
+
 // 頁面載入完成後初始化
 document.addEventListener('DOMContentLoaded', () => {
     console.log('報紙風格新聞頁面初始化');
@@ -501,6 +528,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // 設置返回顶部按钮功能
     setupBackToTop();
+    
+    // 設置主题切换功能
+    setupThemeToggle();
     
     // 設置自動刷新開關事件監聽
     const autoRefreshToggle = document.getElementById('autoRefreshToggle');
