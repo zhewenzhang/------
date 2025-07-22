@@ -39,7 +39,7 @@ const mockNewsData = [
         rtime: '2025-07-02T05:46:21.472+00:00',
         time: '13:46:21',
         content: '這項突破性技術的發布標誌著人工智能領域的重大進展。新模型不僅在語言理解方面表現卓越，還能進行複雜的推理和創作。專家預測，這將為教育、醫療、金融等多個行業帶來革命性變化。',
-        tag: 'AI'
+        tag: 'AI##科技##創新'
     },
     {
         id: 2,
@@ -51,7 +51,7 @@ const mockNewsData = [
         rtime: '2025-07-02T04:30:15.123+00:00',
         time: '12:30:15',
         content: '這項突破性技術的發布標誌著人工智能領域的重大進展。新模型不僅在語言理解方面表現卓越，還能進行複雜的推理和創作。專家預測，這將為教育、醫療、金融等多個行業帶來革命性變化。',
-        tag: '氣候變化'
+        tag: '環境##氣候變化##政策'
     },
     {
         id: 3,
@@ -62,7 +62,8 @@ const mockNewsData = [
         created_at: '2024-01-15T08:45:00Z',
         rtime: '2025-07-02T03:15:30.456+00:00',
         time: '11:15:30',
-        content: '這項技術不僅提高了電池的能量密度，還大幅改善了安全性能。預計在未來三年內實現商業化量產，將徹底改變電動車市場格局。'
+        content: '這項技術不僅提高了電池的能量密度，還大幅改善了安全性能。預計在未來三年內實現商業化量產，將徹底改變電動車市場格局。',
+        tag: '電動車#電池技術##科技創新'
     },
     {
         id: 4,
@@ -73,7 +74,8 @@ const mockNewsData = [
         created_at: '2024-01-15T07:20:00Z',
         rtime: '2024-01-15T07:20:00Z',
         time: '15:20:00',
-        content: '新政策建立了完善的監管框架，包括交易所許可制度、投資者保護機制和反洗錢措施。這將為數位貨幣市場帶來更多穩定性和可預測性。'
+        content: '新政策建立了完善的監管框架，包括交易所許可制度、投資者保護機制和反洗錢措施。這將為數位貨幣市場帶來更多穩定性和可預測性。',
+        tag: '金融#數位貨幣#監管政策'
     },
     {
         id: 5,
@@ -229,12 +231,53 @@ function getCategoryColor(category) {
     return colors[category] || '#8b4513';
 }
 
+// 創建標籤HTML
+function createTagsHTML(tagString) {
+    if (!tagString) return '';
+    
+    // 先按##分離，然後再按單個#分離，最後過濾空標籤
+    let tags = [];
+    
+    // 移除開頭的#符號
+    let cleanString = tagString.replace(/^#+/, '');
+    
+    // 先按##分離
+    let parts = cleanString.split('##');
+    
+    // 對每個部分再按單個#分離
+    parts.forEach(part => {
+        if (part.includes('#')) {
+            tags.push(...part.split('#').filter(tag => tag.trim()));
+        } else {
+            if (part.trim()) tags.push(part.trim());
+        }
+    });
+    
+    // 預定義標籤顏色
+    const tagColors = [
+        '#3b82f6', // 藍色
+        '#ef4444', // 紅色
+        '#10b981', // 綠色
+        '#f59e0b', // 橙色
+        '#8b5cf6', // 紫色
+        '#06b6d4', // 青色
+        '#f97316', // 深橙色
+        '#84cc16'  // 萊姆綠
+    ];
+    
+    return tags.map((tag, index) => {
+        const color = tagColors[index % tagColors.length];
+        return `<span class="news-tag" style="background-color: ${color}; color: white;">${tag.trim()}</span>`;
+    }).join('');
+}
+
 // 創建新聞條目HTML
 function createNewsItemHTML(news) {
     const dateTime = formatNewsDateTime(news.rtime, news.time);
     const title = news.title || '無標題';
     const source = news.tag || '未知來源';
     const content = news.content || '無內容描述';
+    const tagsHTML = createTagsHTML(news.tag);
     
     return `
         <div class="news-item">
@@ -242,7 +285,7 @@ function createNewsItemHTML(news) {
             <div class="news-meta">
                 <span>來源: 財聯社</span>
                 <span>發布時間: ${dateTime}</span>
-                ${news.tag ? `<span>標籤: #${news.tag}</span>` : ''}
+                ${tagsHTML}
             </div>
             <p>${content}</p>
         </div>

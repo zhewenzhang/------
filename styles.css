@@ -375,6 +375,21 @@ input:checked + .slider:before {
     border-radius: 12px;
     border: 1px solid var(--border-color);
     backdrop-filter: blur(5px);
+    color: white;
+    font-weight: 500;
+}
+
+.news-tag {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 15px;
+    font-size: 10px;
+    font-weight: 600;
+    margin-left: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: none;
 }
 
 .news-item p {
