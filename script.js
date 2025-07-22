@@ -283,8 +283,8 @@ function createNewsItemHTML(news) {
         <div class="news-item">
             <h2>${title}</h2>
             <div class="news-meta">
-                <span>來源: 財聯社</span>
-                <span>發布時間: ${dateTime}</span>
+                <span>財聯社</span>
+                <span>${dateTime}</span>
                 ${tagsHTML}
             </div>
             <p>${content}</p>
