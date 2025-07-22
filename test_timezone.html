@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>時區轉換測試</title>
+</head>
+<body>
+    <h1>時區轉換測試</h1>
+    <div id="result"></div>
+    
+    <script>
+        function formatDateToBeijingTime(utcDateString) {
+            if (!utcDateString) return '';
+            
+            const date = new Date(utcDateString);
+            if (isNaN(date.getTime())) {
+                console.error('無效的日期字符串:', utcDateString);
+                return '';
+            }
+
+            // 使用 toLocaleString 方法並指定時區，只獲取日期部分
+            const beijingDate = date.toLocaleString('zh-CN', {
+                timeZone: 'Asia/Shanghai',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            });
+
+            // 將格式轉換為所需的格式
+            const [year, month, day] = beijingDate.split('/');
+            
+            return `${year}年${month}月${day}日`;
+        }
+        
+        // 測試不同的時間戳
+        const testCases = [
+            '2025-07-22 06:44:40+00',  // UTC時間
+            '2025-07-22T06:44:40Z',    // ISO格式UTC
+            '2025-07-22T14:44:40+08:00', // 北京時間
+            '2025-07-22T06:44:40.000Z'   // 帶毫秒的UTC
+        ];
+        
+        let result = '<h2>測試結果:</h2>';
+        testCases.forEach((testCase, index) => {
+            const formatted = formatDateToBeijingTime(testCase);
+            result += `<p>測試 ${index + 1}: ${testCase} → ${formatted}</p>`;
+        });
+        
+        document.getElementById('result').innerHTML = result;
+    </script>
+</body>
+</html>

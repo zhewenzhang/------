@@ -116,7 +116,7 @@ function formatDateToBeijingTime(utcDateString) {
         return '';
     }
 
-    // 使用 toLocaleString 方法並指定時區，只獲取日期部分
+    // 使用 toLocaleString 方法並指定時區，獲取各個日期組件
     const beijingDate = date.toLocaleString('zh-CN', {
         timeZone: 'Asia/Shanghai',
         year: 'numeric',
@@ -124,17 +124,30 @@ function formatDateToBeijingTime(utcDateString) {
         day: '2-digit'
     });
 
-    // 將格式轉換為所需的格式
-    const [year, month, day] = beijingDate.split('/');
+    // 直接使用 getFullYear, getMonth, getDate 方法獲取北京時間的日期組件
+    const beijingTime = new Date(date.toLocaleString('en-US', { timeZone: 'Asia/Shanghai' }));
+    const year = beijingTime.getFullYear();
+    const month = String(beijingTime.getMonth() + 1).padStart(2, '0');
+    const day = String(beijingTime.getDate()).padStart(2, '0');
     
     return `${year}年${month}月${day}日`;
 }
 
 // 組合日期和時間顯示
-function formatNewsDateTime(rtimeString, timeString) {
-    if (!rtimeString && !timeString) return '';
+function formatNewsDateTime(createdAtString, timeString) {
+    if (!createdAtString && !timeString) return '';
     
-    const dateStr = formatDateToBeijingTime(rtimeString);
+    // 直接從 created_at 提取日期部分
+    let dateStr = '';
+    if (createdAtString) {
+        const date = new Date(createdAtString);
+        if (!isNaN(date.getTime())) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            dateStr = `${year}年${month}月${day}日`;
+        }
+    }
     
     if (timeString) {
         return `${dateStr} ${timeString}`;
@@ -273,7 +286,7 @@ function createTagsHTML(tagString) {
 
 // 創建新聞條目HTML
 function createNewsItemHTML(news) {
-    const dateTime = formatNewsDateTime(news.rtime, news.time);
+    const dateTime = formatNewsDateTime(news.created_at, news.time);
     const title = news.title || '無標題';
     const source = news.tag || '未知來源';
     const content = news.content || '無內容描述';
@@ -373,7 +386,7 @@ async function fetchNewsFromSupabase() {
         console.log('正在獲取最新的20條新聞數據...');
         const { data, error } = await supabase
             .from('n8n_cls_news')
-            .select('id, title, content, link, rtime, tag, time, timestamp')
+            .select('id, title, content, link, rtime, tag, time, timestamp, created_at')
             .not('rtime', 'is', null)  // 過濾掉rtime為null的記錄
             .order('rtime', { ascending: false })
             .limit(20);
