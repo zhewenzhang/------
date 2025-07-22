@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新聞推送 - Apple風格</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo">Dave AI 助手</div>
+            <div class="header-controls">
+                <div class="world-time" id="worldTime">
+                    <div class="time-zone" data-timezone="Asia/Shanghai">
+                        <div class="city-name">北京</div>
+                        <div class="time-date"></div>
+                        <div class="time-clock"></div>
+                    </div>
+                    <div class="time-zone" data-timezone="America/New_York">
+                        <div class="city-name">紐約</div>
+                        <div class="time-date"></div>
+                        <div class="time-clock"></div>
+                    </div>
+                    <div class="time-zone" data-timezone="America/Los_Angeles">
+                        <div class="city-name">洛杉磯</div>
+                        <div class="time-date"></div>
+                        <div class="time-clock"></div>
+                    </div>
+                    <div class="time-zone" data-timezone="Europe/London">
+                        <div class="city-name">倫敦</div>
+                        <div class="time-date"></div>
+                        <div class="time-clock"></div>
+                    </div>
+                    <div class="time-zone" data-timezone="Australia/Sydney">
+                        <div class="city-name">悉尼</div>
+                        <div class="time-date"></div>
+                        <div class="time-clock"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            <div class="news-container">
+                <div id="newsList" class="news-list">
+                    <div class="loading">正在載入新聞...</div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- 撕紙動画 -->
+    <div id="tearAnimation" class="tear-animation">
+        <div class="loading-message">
+            <div class="loading-text">情報加載中</div>
+            <div class="loading-dots">
+                <span>.</span>
+                <span>.</span>
+                <span>.</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 导航提示 -->
+    <div class="navigation-hint">
+        <span class="hint-text">滾動查看更多新聞 • Ctrl+R 手動刷新</span>
+        <div class="auto-refresh-control inline-control">
+            <label class="switch">
+                <input type="checkbox" id="autoRefreshToggle" checked>
+                <span class="slider"></span>
+            </label>
+            <span class="switch-label">自動刷新</span>
+        </div>
+    </div>
+
+    <!-- 更新指示器 -->
+    <div class="update-indicator" id="updateIndicator">
+        檢查更新中...
+    </div>
+    
+    <!-- 返回顶部按钮 -->
+    <button class="back-to-top" id="backToTop" title="返回頂部">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 4L12 20M12 4L6 10M12 4L18 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    </button>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

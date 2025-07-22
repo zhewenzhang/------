@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase 最新新聞測試</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #0056b3;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .news-item {
+            border-bottom: 1px solid #eee;
+            padding: 15px 0;
+        }
+        .news-item:last-child {
+            border-bottom: none;
+        }
+        .news-item h2 {
+            margin-top: 0;
+            color: #333;
+            font-size: 1.5em;
+        }
+        .news-item p {
+            color: #666;
+            line-height: 1.6;
+        }
+        .news-meta {
+            font-size: 0.9em;
+            color: #888;
+            margin-bottom: 5px;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-size: 1.2em;
+            color: #555;
+        }
+        .error {
+            text-align: center;
+            padding: 20px;
+            font-size: 1.2em;
+            color: #d9534f;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Supabase 最新新聞測試頁面</h1>
+        <div class="controls">
+            <button id="refreshButton">刷新新聞</button>
+        </div>
+        <div id="logDisplay" style="margin-top: 10px; padding: 10px; border: 1px solid #ccc; background-color: #f9f9f9; font-size: 0.9em; white-space: pre-wrap;"></div>
+        <div id="newsList">
+            <p class="loading">正在載入新聞...</p>
+        }
+    </div>
+
+    <!-- 引入 Supabase 庫 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- 引入配置文件 -->
+    <script src="./config.js"></script>
+    <!-- 引入頁面邏輯 -->
+    <script src="./test_data_load.js"></script>
+</body>
+</html>
