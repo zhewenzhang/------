@@ -25,7 +25,7 @@ let newsData = [];
 let lastUpdateTime = null;
 let autoRefreshInterval;
 let timeUpdateInterval;
-let isAutoRefreshEnabled = true;
+let isAutoRefreshEnabled = false;
 
 // 模擬新聞數據
 const mockNewsData = [
@@ -86,7 +86,8 @@ const mockNewsData = [
         created_at: '2024-01-15T06:00:00Z',
         rtime: '2024-01-15T06:00:00Z',
         time: '14:00:00',
-        content: '此次任務的成功證明了私人企業在太空探索領域的巨大潛力。預計未來十年內，太空旅遊和太空製造將成為新興產業，為人類開拓全新的發展空間。'
+        content: '此次任務的成功證明了私人企業在太空探索領域的巨大潛力。預計未來十年內，太空旅遊和太空製造將成為新興產業，為人類開拓全新的發展空間。',
+        tag: '太空探索##科學##商業'
     },
     {
         id: 6,
@@ -97,7 +98,8 @@ const mockNewsData = [
         created_at: '2024-01-15T05:30:00Z',
         rtime: '2024-01-15T05:30:00Z',
         time: '13:30:00',
-        content: '這套AI系統結合了深度學習和醫學影像分析技術，能夠識別人眼難以察覺的早期病變。預計將在全球醫院推廣使用，大幅提高癌症治癒率。'
+        content: '這套AI系統結合了深度學習和醫學影像分析技術，能夠識別人眼難以察覺的早期病變。預計將在全球醫院推廣使用，大幅提高癌症治癒率。',
+        tag: '醫療AI##診斷##科技'
     }
 ];
 
@@ -286,14 +288,28 @@ function createTagsHTML(tagString) {
 
 // 創建新聞條目HTML
 function createNewsItemHTML(news) {
+    console.log('🔍 创建新闻项目:', news);
+    
     const dateTime = formatNewsDateTime(news.created_at, news.time);
     const title = news.title || '無標題';
     const source = news.tag || '未知來源';
     const content = news.content || '無內容描述';
     const tagsHTML = createTagsHTML(news.tag);
     
+    // 确保news.id存在
+    const newsId = news.id || Math.floor(Math.random() * 10000);
+    console.log('🔍 使用的newsId:', newsId);
+    
+    // 获取AI分析字段
+    const mood = news.mood || '';
+    const relation = news.relation || '';
+    const analyze = news.analyze || '';
+    
+    // 检查是否有AI分析数据
+    const hasAIData = mood || relation || analyze;
+    
     return `
-        <div class="news-item">
+        <div class="news-item" data-news-id="${newsId}">
             <h2>${title}</h2>
             <div class="news-meta">
                 <span>財聯社</span>
@@ -301,6 +317,18 @@ function createNewsItemHTML(news) {
                 ${tagsHTML}
             </div>
             <p>${content}</p>
+            ${hasAIData ? `
+            <div class="ai-analysis-section">
+                <button class="ai-analysis-btn" data-news-id="${newsId}">
+                    <span class="ai-icon">✨</span>
+                    <span class="ai-text">AI 智能分析</span>
+                    <span class="ai-arrow">▼</span>
+                </button>
+                <div class="ai-analysis-content" id="ai-content-${newsId}" style="display: none;">
+                    <!-- AI分析内容将通过showAIAnalysisWithTypewriter函数动态生成 -->
+                </div>
+            </div>
+            ` : ''}
         </div>
     `;
 }
@@ -315,6 +343,11 @@ function showLoadingNews() {
 
 // 顯示新聞列表
 function displayNewsList(newsList) {
+    console.log('🔍 displayNewsList called with:', { 
+        newsListLength: newsList?.length || 0, 
+        firstNewsId: newsList?.[0]?.id || 'none' 
+    });
+    
     const newsListElement = document.getElementById('newsList');
     if (!newsListElement) {
         console.error('找不到新聞列表容器');
@@ -327,8 +360,21 @@ function displayNewsList(newsList) {
     }
     
     console.log(`顯示 ${newsList.length} 條新聞`);
-    const newsHTML = newsList.map(news => createNewsItemHTML(news)).join('');
+    
+    // 确保每个新闻项目都有id
+    const newsWithIds = newsList.map(news => {
+        if (!news.id) {
+            news.id = Math.floor(Math.random() * 10000);
+            console.log('🔍 为缺少id的新闻生成随机id:', news.id);
+        }
+        return news;
+    });
+    
+    const newsHTML = newsWithIds.map(news => createNewsItemHTML(news)).join('');
     newsListElement.innerHTML = newsHTML;
+    
+    // 打印生成的HTML结构
+    console.log('🔍 生成的HTML结构:', newsListElement.innerHTML.substring(0, 200) + '...');
     
     // 更新最後更新時間
     lastUpdateTime = new Date();
@@ -368,7 +414,7 @@ async function fetchNewsFromSupabase() {
         // 首先檢查數據庫中最新的rtime
         console.log('正在檢查數據庫中最新的數據時間...');
         const { data: latestData, error: latestError } = await supabase
-            .from('n8n_cls_news')
+            .from(config.tableName)
             .select('rtime')
             .not('rtime', 'is', null)
             .order('rtime', { ascending: false })
@@ -385,8 +431,8 @@ async function fetchNewsFromSupabase() {
         // 獲取最新的20條新聞數據
         console.log('正在獲取最新的20條新聞數據...');
         const { data, error } = await supabase
-            .from('n8n_cls_news')
-            .select('id, title, content, link, rtime, tag, time, timestamp, created_at')
+            .from(config.tableName)
+            .select('id, title, content, link, rtime, tag, time, timestamp, created_at, mood, relation, "analyze"')
             .not('rtime', 'is', null)  // 過濾掉rtime為null的記錄
             .order('rtime', { ascending: false })
             .limit(20);
@@ -488,7 +534,7 @@ function hideUpdateIndicator() {
 // 自動刷新控制
 function startAutoRefresh() {
     if (isAutoRefreshEnabled) {
-        autoRefreshInterval = setInterval(checkForUpdates, 30000); // 每30秒檢查一次
+        autoRefreshInterval = setInterval(checkForUpdates, 60000); // 每60秒檢查一次
         console.log('自動刷新已啟動');
     }
 }
@@ -546,20 +592,14 @@ function setupThemeToggle() {
     
     // 从本地存储获取主题设置
     const savedTheme = localStorage.getItem('theme') || 'dark';
-    if (savedTheme === 'light') {
-        body.setAttribute('data-theme', 'light');
-    }
+    body.setAttribute('data-theme', savedTheme);
     
     // 主题切换事件
     themeToggle.addEventListener('click', () => {
         const currentTheme = body.getAttribute('data-theme');
         const newTheme = currentTheme === 'light' ? 'dark' : 'light';
         
-        if (newTheme === 'light') {
-            body.setAttribute('data-theme', 'light');
-        } else {
-            body.removeAttribute('data-theme');
-        }
+        body.setAttribute('data-theme', newTheme);
         
         // 保存到本地存储
         localStorage.setItem('theme', newTheme);
@@ -570,41 +610,58 @@ function setupThemeToggle() {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('報紙風格新聞頁面初始化');
     
-    // 開始實時時間更新
-    startTimeUpdate();
-    
-    // 顯示載入狀態
-    showLoadingNews();
-    
-    // 設置導航
-    setupNavigation();
-    
-    // 設置鍵盤快捷鍵
-    setupKeyboardShortcuts();
-    
-    // 設置返回顶部按钮功能
-    setupBackToTop();
-    
-    // 設置主题切换功能
-    setupThemeToggle();
-    
-    // 設置自動刷新開關事件監聽
-    const autoRefreshToggle = document.getElementById('autoRefreshToggle');
-    if (autoRefreshToggle) {
-        autoRefreshToggle.addEventListener('change', (e) => {
-            toggleAutoRefresh(e.target.checked);
-        });
+    try {
+        // 開始實時時間更新
+        console.log('Starting time update...');
+        startTimeUpdate();
+        
+        // 顯示載入狀態
+        console.log('Showing loading state...');
+        showLoadingNews();
+        
+        // 設置導航
+        console.log('Setting up navigation...');
+        setupNavigation();
+        
+        // 設置鍵盤快捷鍵
+        console.log('Setting up keyboard shortcuts...');
+        setupKeyboardShortcuts();
+        
+        // 設置返回顶部按钮功能
+        console.log('Setting up back to top...');
+        setupBackToTop();
+        
+        // 設置主题切换功能
+        console.log('Setting up theme toggle...');
+        setupThemeToggle();
+        
+        // 設置AI分析按钮事件委托
+        console.log('Setting up AI analysis event delegation...');
+        setupAIAnalysisEventDelegation();
+        
+        // 設置自動刷新開關事件監聽
+        const autoRefreshToggle = document.getElementById('autoRefreshToggle');
+        if (autoRefreshToggle) {
+            autoRefreshToggle.addEventListener('change', (e) => {
+                toggleAutoRefresh(e.target.checked);
+            });
+        }
+        
+        // 初始載入新聞
+        console.log('Starting initial news load...');
+        setTimeout(() => {
+            checkForUpdates();
+        }, 1000);
+        
+        // 開始自動刷新（如果啟用）
+        setTimeout(() => {
+            startAutoRefresh();
+        }, 2000);
+        
+        console.log('Page initialization completed successfully');
+    } catch (error) {
+        console.error('Error during page initialization:', error);
     }
-    
-    // 初始載入新聞
-    setTimeout(() => {
-        checkForUpdates();
-    }, 1000);
-    
-    // 開始自動刷新（如果啟用）
-    setTimeout(() => {
-        startAutoRefresh();
-    }, 2000);
 });
 
 // 頁面卸載時清理定時器
@@ -635,6 +692,42 @@ document.addEventListener('visibilitychange', () => {
     }
 });
 
+// AI分析事件委托处理
+function setupAIAnalysisEventDelegation() {
+    // 使用事件委托处理AI分析按钮点击
+    document.addEventListener('click', (e) => {
+        if (e.target.closest('.ai-analysis-btn')) {
+            const button = e.target.closest('.ai-analysis-btn');
+            const newsId = button.getAttribute('data-news-id');
+            
+            console.log('🔍 点击了AI分析按钮:', {
+                button: button,
+                newsId: newsId,
+                buttonAttributes: Array.from(button.attributes).map(attr => `${attr.name}=${attr.value}`).join(', ')
+            });
+            
+            if (newsId && newsId !== 'null' && newsId !== 'undefined') {
+                // 不再将newsId转换为整数，保持为字符串
+                toggleAIAnalysis(newsId);
+            } else {
+                console.error('❌ 无效的newsId:', newsId);
+            }
+        }
+    });
+    
+    // 在页面加载完成后，打印所有AI分析按钮
+    setTimeout(() => {
+        const allButtons = document.querySelectorAll('.ai-analysis-btn');
+        console.log(`🔍 页面上共有 ${allButtons.length} 个AI分析按钮:`);
+        allButtons.forEach((btn, index) => {
+            console.log(`按钮 ${index + 1}:`, {
+                newsId: btn.getAttribute('data-news-id'),
+                attributes: Array.from(btn.attributes).map(attr => `${attr.name}=${attr.value}`).join(', ')
+            });
+        });
+    }, 2000);
+}
+
 // 返回顶部按钮功能
 function setupBackToTop() {
     const backToTopBtn = document.getElementById('backToTop');
@@ -655,4 +748,554 @@ function setupBackToTop() {
             behavior: 'smooth'
         });
     });
+}
+
+// AI 分析功能相关变量
+let expandAnimationSpeed = 0.6; // 展开动画速度（秒）
+let typewriterSpeed = 80; // 打字机速度（毫秒/字符）
+let isFirstExpand = {}; // 记录每个内容区域是否首次展开
+let isToggling = {}; // 防抖标记
+
+// AI 分析功能
+function toggleAIAnalysis(newsId) {
+    try {
+        console.log('🎯 toggleAIAnalysis called with newsId:', newsId);
+        
+        // 确保newsId是字符串
+        const id = String(newsId);
+        console.log('🔄 转换后的newsId:', id);
+        
+        // 防抖检查
+        if (isToggling[id]) {
+            console.log('⏳ 正在切换中，忽略重复点击');
+            return;
+        }
+        
+        // 打印所有可用的AI内容元素和按钮，帮助调试
+        const allContentDivs = document.querySelectorAll('[id^="ai-content-"]');
+        const allButtons = document.querySelectorAll('.ai-analysis-btn');
+        
+        console.log('🔍 可用的AI内容元素:', allContentDivs.length);
+        Array.from(allContentDivs).forEach((div, index) => {
+            console.log(`内容区域 ${index + 1}:`, {
+                id: div.id,
+                display: div.style.display,
+                classList: Array.from(div.classList)
+            });
+        });
+        
+        console.log('🔍 可用的AI按钮:', allButtons.length);
+        Array.from(allButtons).forEach((btn, index) => {
+            console.log(`按钮 ${index + 1}:`, {
+                newsId: btn.getAttribute('data-news-id'),
+                attributes: Array.from(btn.attributes).map(attr => `${attr.name}=${attr.value}`).join(', ')
+            });
+        });
+        
+        const contentDiv = document.getElementById(`ai-content-${id}`);
+        const button = document.querySelector(`.ai-analysis-btn[data-news-id="${id}"]`);
+        
+        if (!contentDiv || !button) {
+            console.error('❌ 元素未找到:', { 
+                id: id,
+                contentDivId: `ai-content-${id}`,
+                buttonSelector: `.ai-analysis-btn[data-news-id="${id}"]`,
+                contentDiv: !!contentDiv, 
+                button: !!button 
+            });
+            return;
+        }
+        
+        const arrow = button.querySelector('.ai-arrow');
+        const isExpanded = contentDiv.classList.contains('expanded');
+        
+        console.log('📊 当前状态:', { isExpanded, display: contentDiv.style.display });
+        
+        // 设置防抖标记
+        isToggling[id] = true;
+        
+        if (!isExpanded) {
+            // 展开 AI 分析
+            console.log('📈 展开AI分析区域');
+            
+            // 检查是否首次展开，如果是则应用打字机效果
+            if (!isFirstExpand[id]) {
+                console.log('⌨️ 首次展开，启动打字机效果');
+                isFirstExpand[id] = true;
+                
+                // 先启动打字机效果，在打字机效果中控制显示
+                showAIAnalysisWithTypewriter(contentDiv, id);
+            } else {
+                // 非首次展开，直接显示内容
+                contentDiv.style.display = 'block';
+                setTimeout(() => {
+                    contentDiv.classList.add('expanded');
+                }, 10);
+            }
+            
+            // 2. 按钮箭头变化
+            if (arrow) {
+                arrow.textContent = '▲';
+            }
+            
+            // 3. 添加active样式类
+            button.classList.add('active');
+            
+        } else {
+            // 收起 AI 分析
+            console.log('📉 收起AI分析区域');
+            
+            // 1. 收起AI分析区域
+            contentDiv.classList.remove('expanded');
+            setTimeout(() => {
+                contentDiv.style.display = 'none';
+            }, 600); // 修正为与CSS动画时间一致
+            
+            // 2. 按钮箭头变化
+            if (arrow) {
+                arrow.textContent = '▼';
+            }
+            
+            // 3. 移除active样式类
+            button.classList.remove('active');
+        }
+        
+        // 添加视觉反馈
+        button.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+            button.style.transform = 'scale(1)';
+        }, 150);
+        
+        // 清除防抖标记
+        setTimeout(() => {
+            isToggling[id] = false;
+        }, 650);
+        
+    } catch (error) {
+        console.error('💥 Error in toggleAIAnalysis:', error);
+        // 出错时也要清除防抖标记
+        isToggling[id] = false;
+    }
+}
+
+// 处理分析内容，添加情绪颜色和股票标签
+function processAnalysisContent(content, itemTitle) {
+    let processedContent = content;
+    
+    // 处理情感倾向的颜色
+    if (itemTitle === '情感倾向') {
+        // 处理正面情感词汇
+        processedContent = processedContent.replace(/(正面|积极|乐观)/g, '<span class="sentiment-positive">$1</span>');
+        // 处理负面情感词汇
+        processedContent = processedContent.replace(/(负面|消极|悲观)/g, '<span class="sentiment-negative">$1</span>');
+        // 处理中性情感词汇
+        processedContent = processedContent.replace(/(中性|中立)/g, '<span class="sentiment-neutral">$1</span>');
+    }
+    
+    // 处理关联分析中的股票标签
+    if (itemTitle === '关联分析') {
+        // 匹配引号内的股票代码格式："公司名-代码.交易所"
+        const stockPattern = /"([^"]*-[A-Z0-9]+\.[A-Z]+)"/g;
+        const matches = content.match(stockPattern);
+        
+        if (matches) {
+            matches.forEach(match => {
+                // 提取股票名称（去掉引号）
+                const stockName = match.replace(/"/g, '');
+                const stockTag = `<span class="stock-tag">${stockName}</span>`;
+                processedContent = processedContent.replace(match, stockTag);
+            });
+        }
+    }
+    
+    return processedContent;
+}
+
+// 显示AI分析结果（带打字机效果）
+function showAIAnalysisWithTypewriter(contentDiv, newsId) {
+    try {
+        console.log('⌨️ 开始打字机效果显示AI分析内容');
+        
+        // 从新闻数据中获取真实的AI分析数据
+        const newsItem = newsData.find(item => item.id == newsId);
+        if (!newsItem) {
+            console.error('❌ News item not found for newsId:', newsId);
+            return;
+        }
+        
+        const analysisData = {
+            title: "AI 智能分析",
+            summary: "基于深度学习算法对新闻内容进行多维度分析，提供客观、准确的洞察。",
+            analysisItems: [
+                {
+                    title: "情感倾向",
+                    content: newsItem.mood || "暂无情感分析数据",
+                    score: "--"
+                },
+                {
+                    title: "关联分析",
+                    content: newsItem.relation || "暂无关联分析数据",
+                    score: "--"
+                },
+                {
+                    title: "深度分析",
+                    content: newsItem.analyze || "暂无深度分析数据",
+                    score: "--"
+                }
+            ]
+        };
+        
+        // 先清空内容区域
+        contentDiv.innerHTML = '';
+        
+        // 创建完全隐藏的HTML结构
+        const htmlContent = `
+            <div class="ai-analysis-title" style="opacity: 0; height: 0; margin: 0; padding: 0;"></div>
+            <div class="ai-analysis-summary" style="opacity: 0; height: 0; margin: 0; padding: 0;"></div>
+            <div class="ai-analysis-items" style="opacity: 0; height: 0; margin: 0; padding: 0;">
+                ${analysisData.analysisItems.map((_, index) => `
+                    <div class="analysis-item" data-index="${index}" style="opacity: 0; height: 0; margin: 0; padding: 0;">
+                        <div class="item-header">
+                            <h4 class="item-title"></h4>
+                            <span class="item-score"></span>
+                        </div>
+                        <p class="item-content"></p>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+        
+        contentDiv.innerHTML = htmlContent;
+        
+        // 先显示容器但保持内容隐藏
+        contentDiv.style.display = 'block';
+        setTimeout(() => {
+            contentDiv.classList.add('expanded');
+        }, 10);
+        
+        // 定义要打字的内容和对应的元素
+        const contentToType = [
+            {
+                element: contentDiv.querySelector('.ai-analysis-title'),
+                content: analysisData.title,
+                delay: 0
+            },
+            {
+                element: contentDiv.querySelector('.ai-analysis-summary'),
+                content: analysisData.summary,
+                delay: 500
+            }
+        ];
+        
+        // 添加分析项
+        analysisData.analysisItems.forEach((item, index) => {
+            const itemElement = contentDiv.querySelector(`.analysis-item[data-index="${index}"]`);
+            if (itemElement) {
+                contentToType.push({
+                    element: itemElement.querySelector('.item-title'),
+                    content: item.title,
+                    delay: 1000 + (index * 800)
+                });
+                contentToType.push({
+                    element: itemElement.querySelector('.item-score'),
+                    content: item.score,
+                    delay: 1200 + (index * 800)
+                });
+                contentToType.push({
+                    element: itemElement.querySelector('.item-content'),
+                    content: item.content,
+                    delay: 1400 + (index * 800),
+                    isContent: true,
+                    itemTitle: item.title
+                });
+            }
+        });
+        
+        // 依次对每个元素应用打字机效果
+        contentToType.forEach(({ element, content, delay, isContent, itemTitle }) => {
+            if (element) {
+                setTimeout(() => {
+                    // 在开始打字前恢复元素的正常样式
+                    element.style.opacity = '1';
+                    element.style.height = 'auto';
+                    element.style.margin = '';
+                    element.style.padding = '';
+                    
+                    // 如果是分析项容器，也要恢复其父容器的样式
+                    if (element.classList.contains('item-title')) {
+                        const itemContainer = element.closest('.analysis-item');
+                        if (itemContainer) {
+                            itemContainer.style.opacity = '1';
+                            itemContainer.style.height = 'auto';
+                            itemContainer.style.margin = '';
+                            itemContainer.style.padding = '';
+                        }
+                    }
+                    
+                    // 如果是第一个分析项的标题，也要显示分析项容器
+                    if (element.classList.contains('item-title') && element.closest('.analysis-item[data-index="0"]')) {
+                        const itemsContainer = contentDiv.querySelector('.ai-analysis-items');
+                        if (itemsContainer) {
+                            itemsContainer.style.opacity = '1';
+                            itemsContainer.style.height = 'auto';
+                            itemsContainer.style.margin = '';
+                            itemsContainer.style.padding = '';
+                        }
+                    }
+                    
+                    // 处理内容的特殊格式
+                    if (isContent && itemTitle) {
+                        const processedContent = processAnalysisContent(content, itemTitle);
+                        typeWriterEffect(element, processedContent, typewriterSpeed, true);
+                    } else {
+                        typeWriterEffect(element, content, typewriterSpeed);
+                    }
+                }, delay);
+            }
+        });
+        
+        console.log('✅ 打字机效果设置完成');
+        
+    } catch (error) {
+        console.error('💥 打字机效果出错:', error);
+        // 出错时直接显示内容
+        showAIAnalysisResults(newsId);
+    }
+}
+
+// 開始 AI 分析
+function startAIAnalysis(newsId) {
+    console.log('🚀 Starting AI analysis for newsId:', newsId);
+    
+    const loadingDiv = document.getElementById(`ai-loading-${newsId}`);
+    const resultDiv = document.getElementById(`ai-result-${newsId}`);
+    
+    console.log('📋 Analysis elements:', {
+        loadingDiv: !!loadingDiv,
+        resultDiv: !!resultDiv
+    });
+    
+    if (loadingDiv) {
+        loadingDiv.style.display = 'flex';
+        console.log('⏳ Loading animation started');
+    }
+    
+    if (resultDiv) {
+        resultDiv.style.display = 'none';
+        // 清空之前的內容
+        resultDiv.innerHTML = '';
+    }
+    
+    // 模擬 AI 分析過程（1.5秒後顯示結果）
+    setTimeout(() => {
+        console.log('✅ AI analysis completed, showing results');
+        if (loadingDiv) {
+            loadingDiv.style.display = 'none';
+        }
+        if (resultDiv) {
+            resultDiv.style.display = 'block';
+        }
+        
+        // 逐步顯示分析結果
+        showAIAnalysisResults(newsId);
+    }, 1500);
+}
+
+// 顯示 AI 分析結果（打字機效果）
+function showAIAnalysisResults(newsId) {
+    console.log('🎬 開始顯示AI分析結果，新聞ID:', newsId);
+    
+    const resultDiv = document.getElementById(`ai-result-${newsId}`);
+    if (!resultDiv) {
+        console.error('❌ Result div not found for newsId:', newsId);
+        return;
+    }
+    
+    // 確保結果區域可見並清空內容
+    resultDiv.style.display = 'block';
+    resultDiv.innerHTML = '';
+    
+    // 从新闻数据中获取真实的AI分析数据
+    const newsItem = newsData.find(item => item.id == newsId);
+    if (!newsItem) {
+        console.error('❌ News item not found for newsId:', newsId);
+        return;
+    }
+    
+    const realAnalysis = {
+        emotion: newsItem.mood || "暫無情緒分析數據",
+        relation: newsItem.relation || "暫無關聯分析數據", 
+        impact: newsItem.analyze || "暫無深度分析數據",
+        investment: "基於以上分析，建議投資者謹慎評估風險，做好資產配置。"
+    };
+    
+    // 分段顯示內容，實現動態窗口擴展
+    const sections = [
+        { id: `emotion-${newsId}`, title: '📊 情緒分析', content: realAnalysis.emotion, delay: 500 },
+        { id: `relation-${newsId}`, title: '🔗 關聯分析', content: realAnalysis.relation, delay: 3000 },
+        { id: `impact-${newsId}`, title: '📈 影響分析', content: realAnalysis.impact, delay: 6000 },
+        { id: `investment-${newsId}`, title: '💡 投資建議', content: realAnalysis.investment, delay: 9000 }
+    ];
+    
+    // 逐段創建和顯示分析結果
+    sections.forEach((section, index) => {
+        setTimeout(() => {
+            console.log(`🎯 顯示${section.title}`);
+            
+            // 創建section容器
+            const sectionDiv = document.createElement('div');
+            sectionDiv.className = 'ai-section';
+            sectionDiv.style.opacity = '0';
+            sectionDiv.style.transform = 'translateY(20px)';
+            sectionDiv.style.transition = 'all 0.5s ease';
+            
+            // 創建標題
+            const titleElement = document.createElement('h4');
+            titleElement.textContent = section.title;
+            sectionDiv.appendChild(titleElement);
+            
+            // 創建內容容器
+            const contentElement = document.createElement('div');
+            contentElement.className = 'ai-content-text';
+            contentElement.id = section.id;
+            sectionDiv.appendChild(contentElement);
+            
+            // 添加到結果區域
+            resultDiv.appendChild(sectionDiv);
+            
+            // 觸發進入動畫
+            setTimeout(() => {
+                sectionDiv.style.opacity = '1';
+                sectionDiv.style.transform = 'translateY(0)';
+            }, 100);
+            
+            // 開始打字機效果
+            setTimeout(() => {
+                typeWriterEffect(section.id, section.content);
+            }, 600);
+            
+        }, section.delay);
+    });
+}
+
+// 打字機效果函數（增強版）
+function typeWriterEffect(elementId, text, speed = 80, isHTML = false) {
+    try {
+        console.log(`⌨️ Starting typewriter effect for ${elementId}`);
+        
+        const element = typeof elementId === 'string' ? 
+            document.getElementById(elementId) : elementId;
+        
+        if (!element) {
+            console.error('❌ Element not found:', elementId);
+            return;
+        }
+        
+        // 清空元素內容
+        element.innerHTML = '';
+        element.style.minHeight = '20px'; // 確保有最小高度
+        
+        let i = 0;
+        const textLength = text.length;
+        
+        // 添加光标动画样式（如果还没有）
+        if (!document.querySelector('#typewriter-styles')) {
+            const style = document.createElement('style');
+            style.id = 'typewriter-styles';
+            style.textContent = `
+                @keyframes blink {
+                    0%, 50% { opacity: 1; }
+                    51%, 100% { opacity: 0; }
+                }
+                .typewriter-cursor {
+                    animation: blink 1s infinite;
+                    color: #007bff;
+                    font-weight: bold;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        // 添加光标
+        const cursor = document.createElement('span');
+        cursor.className = 'typewriter-cursor';
+        cursor.textContent = '|';
+        element.appendChild(cursor);
+        
+        function typeChar() {
+            if (i < textLength) {
+                const char = text.charAt(i);
+                
+                // 在光标前插入字符
+                if (isHTML) {
+                    // 如果是HTML内容，需要特殊处理
+                    const currentText = text.substring(0, i + 1);
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = currentText;
+                    
+                    // 清除光标前的内容并重新插入
+                    const cursorParent = cursor.parentNode;
+                    while (cursorParent.firstChild !== cursor) {
+                        cursorParent.removeChild(cursorParent.firstChild);
+                    }
+                    
+                    // 插入新的HTML内容
+                    while (tempDiv.firstChild) {
+                        cursorParent.insertBefore(tempDiv.firstChild, cursor);
+                    }
+                } else {
+                    const textNode = document.createTextNode(char);
+                    element.insertBefore(textNode, cursor);
+                }
+                
+                // 動態調整容器高度
+                const container = element.closest('.ai-analysis-content');
+                if (container) {
+                    container.style.height = 'auto';
+                }
+                
+                // 滾動到可見區域
+                if (i % 15 === 0) { // 每15個字符檢查一次
+                    element.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'nearest' 
+                    });
+                }
+                
+                i++;
+                
+                // 根據字符類型調整速度
+                let currentSpeed = speed;
+                if (char === '。' || char === '！' || char === '？') {
+                    currentSpeed = speed * 4; // 句號後停頓更久
+                } else if (char === '，' || char === '、') {
+                    currentSpeed = speed * 2.5; // 逗號後稍作停頓
+                } else if (char === ' ') {
+                    currentSpeed = speed * 0.5; // 空格稍快一些
+                }
+                
+                setTimeout(typeChar, currentSpeed);
+            } else {
+                // 打字完成，移除光标
+                setTimeout(() => {
+                    if (cursor.parentNode) {
+                        cursor.parentNode.removeChild(cursor);
+                    }
+                }, 500);
+                console.log(`✅ Typewriter effect completed for ${elementId}`);
+            }
+        }
+        
+        // 開始打字
+        setTimeout(typeChar, 300);
+        
+    } catch (error) {
+        console.error('💥 Error in typeWriterEffect:', error);
+        // 如果出錯，直接顯示完整文本
+        const element = typeof elementId === 'string' ? 
+            document.getElementById(elementId) : elementId;
+        if (element) {
+            element.innerHTML = text;
+        }
+    }
 }

@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>界面状态切换测试</title>
+    <style>
+        /* 基础样式 */
+        :root {
+            --bg-primary: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            --bg-secondary: rgba(255, 255, 255, 0.05);
+            --bg-card: rgba(255, 255, 255, 0.08);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --accent-color: #00d4ff;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --backdrop-blur: blur(15px);
+        }
+        
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+            margin: 0;
+        }
+        
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--bg-secondary);
+            backdrop-filter: var(--backdrop-blur);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px var(--shadow-color);
+        }
+        
+        .news-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 4px 16px var(--shadow-color);
+        }
+        
+        /* AI分析按钮样式 */
+        .ai-analysis-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 12px 18px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            backdrop-filter: var(--backdrop-blur);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 8px var(--shadow-color);
+            margin-top: 15px;
+        }
+        
+        .ai-analysis-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px var(--shadow-color);
+            border-color: var(--accent-color);
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Active状态样式 */
+        .ai-analysis-btn.active {
+            background: rgba(0, 212, 255, 0.1);
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+        
+        .ai-analysis-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .ai-analysis-btn:hover::before {
+            left: 100%;
+        }
+        
+        .ai-icon {
+            font-size: 16px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .ai-arrow {
+            font-size: 12px;
+            transition: transform 0.3s ease;
+        }
+        
+        /* AI分析内容区域 */
+        .ai-analysis-content {
+            margin-top: 10px;
+            background: linear-gradient(135deg, rgba(0, 123, 255, 0.15), rgba(0, 123, 255, 0.08));
+            border-radius: 6px;
+            padding: 0;
+            border: 1px solid rgba(0, 123, 255, 0.3);
+            box-shadow: 0 2px 8px rgba(0, 123, 255, 0.2);
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: max-height 0.6s ease, opacity 0.6s ease, padding 0.6s ease;
+            max-width: 100%;
+            font-size: 12px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .ai-analysis-content.expanded {
+            max-height: 600px;
+            opacity: 1;
+            padding: 8px;
+        }
+        
+        /* AI分析内容样式优化 - 设计感版本 */
+             .ai-summary {
+                 font-size: 12px;
+                 color: rgba(255, 255, 255, 0.9);
+                 margin-bottom: 12px;
+                 line-height: 1.4;
+                 white-space: pre-line;
+                 padding: 6px 8px;
+                 background: linear-gradient(135deg, rgba(0, 123, 255, 0.1), rgba(0, 123, 255, 0.05));
+                 border-radius: 4px;
+                 border: 1px solid rgba(0, 123, 255, 0.2);
+             }
+             
+             .ai-analysis-section {
+                 display: flex;
+                 flex-direction: column;
+                 gap: 6px;
+             }
+             
+             .analysis-item {
+                 background: linear-gradient(135deg, rgba(0, 123, 255, 0.08), rgba(0, 123, 255, 0.03));
+                 padding: 6px 8px;
+                 border-radius: 4px;
+                 border-left: 2px solid rgba(0, 123, 255, 0.6);
+                 line-height: 1.3;
+                 font-size: 12px;
+                 box-shadow: 0 1px 3px rgba(0, 123, 255, 0.1);
+                 border: 1px solid rgba(0, 123, 255, 0.15);
+             }
+             
+             .analysis-item strong {
+                 color: rgba(255, 255, 255, 0.95);
+                 font-weight: 600;
+                 font-size: 12px;
+             }
+             
+             .analysis-desc {
+                 color: rgba(255, 255, 255, 0.8);
+                 font-size: 11px;
+                 margin-top: 3px;
+                 display: block;
+                 white-space: pre-line;
+                 line-height: 1.3;
+             }
+             
+             .ai-analysis-content h4 {
+                 color: rgba(255, 255, 255, 0.95);
+                 margin-bottom: 8px;
+                 font-size: 14px;
+                 font-weight: 600;
+                 text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+             }
+         
+         /* 打字机光标闪烁动画 */
+         @keyframes blink {
+             0%, 50% { opacity: 1; }
+             51%, 100% { opacity: 0; }
+         }
+         
+         .typing-cursor {
+             color: #007bff;
+             font-weight: bold;
+         }
+        
+        .test-status {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 10px;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .status-item:last-child {
+            border-bottom: none;
+        }
+        
+        .status-indicator {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .status-pass {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+        }
+        
+        .status-fail {
+            background: rgba(255, 0, 136, 0.2);
+            color: #ff0088;
+        }
+        
+        .demo-controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .demo-btn {
+            padding: 8px 16px;
+            background: rgba(0, 212, 255, 0.2);
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .demo-btn:hover {
+            background: rgba(0, 212, 255, 0.3);
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🎛️ 界面状态切换测试</h1>
+        <p>测试AI分析按钮的界面状态切换功能，包括展开/收起、箭头变化、active样式和缩放动画。</p>
+        
+        <!-- 测试新闻项 -->
+        <div class="news-item" data-news-id="test1">
+            <h3>📰 测试新闻 - 界面状态切换</h3>
+            <p>点击下面的AI分析按钮来测试界面状态切换功能，观察以下变化：</p>
+            <ul style="margin: 10px 0; padding-left: 20px; color: var(--text-secondary);">
+                <li>AI分析区域的展开/收起 (display: none ↔ block)</li>
+                <li>按钮箭头从 ▼ 变为 ▲</li>
+                <li>按钮添加/移除 active 样式类</li>
+                <li>按钮缩放动画效果 (scale 0.95 → 1.0)</li>
+            </ul>
+            
+            <button class="ai-analysis-btn" data-news-id="test1">
+                <span class="ai-icon">✨</span>
+                <span class="ai-text">AI 智能分析</span>
+                <span class="ai-arrow">▼</span>
+            </button>
+            
+            <div class="ai-analysis-content" id="ai-content-test1" style="display: none;">
+                <h4>🤖 AI分析结果</h4>
+                <p>这是AI分析的内容区域。当按钮被点击时，这个区域会展开显示。</p>
+                <div style="margin-top: 15px; padding: 15px; background: rgba(0, 212, 255, 0.1); border-radius: 8px;">
+                    <strong>📊 模拟分析数据：</strong><br>
+                    情绪指数: 积极 (85%)<br>
+                    关键词: 技术创新、市场前景<br>
+                    投资建议: 谨慎乐观
+                </div>
+            </div>
+        </div>
+        
+        <!-- 测试状态显示 -->
+        <div class="test-status">
+            <h3>📋 测试状态监控</h3>
+            <div id="statusList">
+                <div class="status-item">
+                    <span>AI分析区域显示状态</span>
+                    <span class="status-indicator status-fail" id="contentStatus">隐藏</span>
+                </div>
+                <div class="status-item">
+                    <span>按钮箭头状态</span>
+                    <span class="status-indicator status-fail" id="arrowStatus">▼ (收起)</span>
+                </div>
+                <div class="status-item">
+                    <span>按钮Active样式</span>
+                    <span class="status-indicator status-fail" id="activeStatus">未激活</span>
+                </div>
+                <div class="status-item">
+                    <span>缩放动画触发</span>
+                    <span class="status-indicator status-fail" id="scaleStatus">未触发</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 演示控制 -->
+        <div class="demo-controls">
+            <button class="demo-btn" onclick="resetTest()">🔄 重置测试</button>
+            <button class="demo-btn" onclick="toggleManual()">🎮 手动切换</button>
+            <button class="demo-btn" onclick="showConsoleLog()">📝 显示日志</button>
+        </div>
+        
+        <!-- 动画速度控制 -->
+        <div class="test-status" style="margin-top: 20px;">
+            <h3>⚙️ 动画速度控制</h3>
+            <div class="status-item">
+                <span>展开动画速度 (秒)</span>
+                <input type="range" id="expandSpeed" min="0.2" max="2.0" step="0.1" value="0.8" 
+                       style="margin: 0 10px; width: 150px;" onchange="updateExpandSpeed(this.value)">
+                <span id="expandSpeedValue">0.8s</span>
+            </div>
+            <div class="status-item">
+                <span>打字机速度 (毫秒/字)</span>
+                <input type="range" id="typewriterSpeed" min="20" max="200" step="10" value="80" 
+                       style="margin: 0 10px; width: 150px;" onchange="updateTypewriterSpeed(this.value)">
+                <span id="typewriterSpeedValue">80ms</span>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let testResults = {
+            contentToggle: false,
+            arrowChange: false,
+            activeClass: false,
+            scaleAnimation: false
+        };
+        
+        // 动画速度控制变量
+        let expandAnimationSpeed = 0.6; // 展开动画速度（秒）
+        let typewriterSpeed = 80; // 打字机速度（毫秒/字符）
+        let isFirstExpand = {}; // 记录每个内容区域是否首次展开
+        
+        // 更新展开动画速度
+        function updateExpandSpeed(value) {
+            expandAnimationSpeed = parseFloat(value);
+            document.getElementById('expandSpeedValue').textContent = value + 's';
+            
+            // 动态更新CSS过渡时间
+            const style = document.createElement('style');
+            style.textContent = `
+                .ai-analysis-content {
+                     transition: max-height ${value}s ease, opacity ${value * 0.75}s ease, padding ${value}s ease !important;
+                 }
+             `;
+             document.head.appendChild(style);
+            console.log('🎛️ 展开动画速度更新为:', value + 's');
+        }
+        
+        // 更新打字机速度
+         function updateTypewriterSpeed(value) {
+             typewriterSpeed = parseInt(value);
+             document.getElementById('typewriterSpeedValue').textContent = value + 'ms';
+             console.log('⌨️ 打字机速度更新为:', value + 'ms');
+         }
+         
+         // 优化的打字机效果函数
+         function typeWriterEffect(element, text, speed = typewriterSpeed) {
+             return new Promise((resolve) => {
+                 // 保存原始HTML结构
+                 const originalHTML = element.innerHTML;
+                 
+                 // 处理文本格式，保留换行和基本格式
+                 const formattedText = text
+                     .replace(/\n/g, '<br>')
+                     .replace(/\r\n/g, '<br>')
+                     .replace(/\r/g, '<br>');
+                 
+                 element.innerHTML = '';
+                 let index = 0;
+                 let currentHTML = '';
+                 
+                 function typeChar() {
+                     if (index < formattedText.length) {
+                         const char = formattedText.charAt(index);
+                         
+                         // 处理HTML标签
+                         if (char === '<') {
+                             // 找到完整的HTML标签
+                             let tagEnd = formattedText.indexOf('>', index);
+                             if (tagEnd !== -1) {
+                                 const tag = formattedText.substring(index, tagEnd + 1);
+                                 currentHTML += tag;
+                                 element.innerHTML = currentHTML;
+                                 index = tagEnd + 1;
+                                 setTimeout(typeChar, 5); // HTML标签快速显示
+                                 return;
+                             }
+                         }
+                         
+                         currentHTML += char;
+                         element.innerHTML = currentHTML;
+                         
+                         // 根据字符类型调整速度
+                         let currentSpeed = speed;
+                         if (char === '。' || char === '！' || char === '？' || char === '.' || char === '!' || char === '?') {
+                             currentSpeed = speed * 3; // 句号等停顿更久
+                         } else if (char === '，' || char === '、' || char === ',' || char === ';' || char === '：' || char === ':') {
+                             currentSpeed = speed * 2; // 逗号停顿中等
+                         } else if (char === ' ' || char === '\t') {
+                             currentSpeed = speed * 0.5; // 空格快一些
+                         } else if (char === '\n') {
+                             currentSpeed = speed * 2; // 换行停顿
+                         }
+                         
+                         index++;
+                         setTimeout(typeChar, currentSpeed);
+                     } else {
+                         // 添加打字完成的光标闪烁效果
+                         element.innerHTML += '<span class="typing-cursor" style="animation: blink 1s infinite; color: var(--accent-color);">|</span>';
+                         
+                         setTimeout(() => {
+                             const cursor = element.querySelector('.typing-cursor');
+                             if (cursor) cursor.remove();
+                         }, 1500);
+                         
+                         resolve();
+                     }
+                 }
+                 
+                 typeChar();
+             });
+         }
+          
+          // 显示AI分析结果并应用打字机效果
+          function showAIAnalysisWithTypewriter(contentDiv, newsId) {
+              console.log('🤖 开始显示AI分析结果，newsId:', newsId);
+              
+              // 模拟从数据库获取的格式化内容
+              const aiAnalysisData = {
+                  title: '🤖 AI智能分析结果',
+                  summary: '基于深度学习算法对新闻内容进行全面分析，\n提供客观、准确的投资建议和市场洞察。',
+                  sentiment: {
+                      label: '情绪分析',
+                      value: '积极乐观 (85%)',
+                      description: '文章整体情绪偏向积极，\n市场信心指数较高。'
+                  },
+                  keywords: {
+                      label: '关键词提取',
+                      value: '技术创新、市场前景、投资机会',
+                      description: '核心关键词反映了\n技术驱动的投资主题。'
+                  },
+                  recommendation: {
+                      label: '投资建议',
+                      value: '谨慎乐观 - 建议关注',
+                      description: '综合分析显示该标的具有\n中长期投资价值，\n建议适度配置。'
+                  },
+                  riskLevel: {
+                      label: '风险评级',
+                      value: '中等风险',
+                      description: '市场波动性适中，\n适合稳健型投资者。'
+                  }
+              };
+              
+              // 先清空内容区域
+              contentDiv.innerHTML = '';
+              
+              // 创建完全隐藏的HTML结构
+              const hiddenStructure = `
+                  <h4 style="opacity: 0; height: 0; margin: 0; padding: 0;"></h4>
+                  <p class="ai-summary" style="opacity: 0; height: 0; margin: 0; padding: 0;"></p>
+                  
+                  <div class="ai-analysis-section" style="opacity: 0; height: 0; margin: 0; padding: 0;">
+                      <div class="analysis-item" style="opacity: 0; height: 0; margin: 0; padding: 0;"></div>
+                      <div class="analysis-item" style="opacity: 0; height: 0; margin: 0; padding: 0;"></div>
+                      <div class="analysis-item" style="opacity: 0; height: 0; margin: 0; padding: 0;"></div>
+                      <div class="analysis-item" style="opacity: 0; height: 0; margin: 0; padding: 0;"></div>
+                  </div>
+              `;
+              
+              // 设置隐藏结构
+              contentDiv.innerHTML = hiddenStructure;
+              
+              // 准备要打字的内容数组
+              const contentToType = [
+                  {
+                      element: contentDiv.querySelector('h4'),
+                      content: aiAnalysisData.title,
+                      delay: 0
+                  },
+                  {
+                      element: contentDiv.querySelector('.ai-summary'),
+                      content: aiAnalysisData.summary,
+                      delay: 500
+                  },
+                  {
+                      element: contentDiv.querySelectorAll('.analysis-item')[0],
+                      content: `<strong>📊 ${aiAnalysisData.sentiment.label}:</strong> ${aiAnalysisData.sentiment.value}<br><span class="analysis-desc">${aiAnalysisData.sentiment.description}</span>`,
+                      delay: 1000
+                  },
+                  {
+                      element: contentDiv.querySelectorAll('.analysis-item')[1],
+                      content: `<strong>🔍 ${aiAnalysisData.keywords.label}:</strong> ${aiAnalysisData.keywords.value}<br><span class="analysis-desc">${aiAnalysisData.keywords.description}</span>`,
+                      delay: 1800
+                  },
+                  {
+                      element: contentDiv.querySelectorAll('.analysis-item')[2],
+                      content: `<strong>💡 ${aiAnalysisData.recommendation.label}:</strong> ${aiAnalysisData.recommendation.value}<br><span class="analysis-desc">${aiAnalysisData.recommendation.description}</span>`,
+                      delay: 2600
+                  },
+                  {
+                      element: contentDiv.querySelectorAll('.analysis-item')[3],
+                      content: `<strong>⚠️ ${aiAnalysisData.riskLevel.label}:</strong> ${aiAnalysisData.riskLevel.value}<br><span class="analysis-desc">${aiAnalysisData.riskLevel.description}</span>`,
+                      delay: 3400
+                  }
+              ];
+              
+              // 依次应用打字机效果
+               contentToType.forEach(({ element, content, delay }) => {
+                   if (element && content) {
+                       setTimeout(() => {
+                           // 在开始打字前恢复元素的正常样式
+                           element.style.opacity = '1';
+                           element.style.height = 'auto';
+                           element.style.margin = '';
+                           element.style.padding = '';
+                           
+                           typeWriterEffect(element, content, typewriterSpeed)
+                               .then(() => {
+                                   console.log('✅ 打字机效果完成:', element.tagName, element.className);
+                               })
+                               .catch(err => {
+                                   console.error('❌ 打字机效果出错:', err);
+                                   // 出错时直接显示内容
+                                   element.innerHTML = content;
+                               });
+                       }, delay);
+                   }
+               });
+          }
+          
+          // 事件委托处理AI分析按钮点击
+        function setupAIAnalysisEventDelegation() {
+            document.addEventListener('click', (e) => {
+                if (e.target.closest('.ai-analysis-btn')) {
+                    const button = e.target.closest('.ai-analysis-btn');
+                    const newsId = button.getAttribute('data-news-id');
+                    
+                    console.log('🎯 按钮点击事件触发');
+                    console.log('📝 获取到的newsId:', newsId);
+                    
+                    if (newsId && newsId !== 'null' && newsId !== 'undefined') {
+                        toggleAIAnalysis(newsId);
+                    } else {
+                        console.error('❌ 无效的newsId:', newsId);
+                    }
+                }
+            });
+        }
+        
+        // 防抖标记
+        let isToggling = {};
+        
+        // AI分析切换功能
+        function toggleAIAnalysis(newsId) {
+            try {
+                console.log('🎯 toggleAIAnalysis called with newsId:', newsId);
+                
+                // 防抖检查
+                if (isToggling[newsId]) {
+                    console.log('⏳ 正在切换中，忽略重复点击');
+                    return;
+                }
+                
+                const contentDiv = document.getElementById(`ai-content-${newsId}`);
+                const button = document.querySelector(`.ai-analysis-btn[data-news-id="${newsId}"]`);
+                
+                if (!contentDiv || !button) {
+                    console.error('❌ 元素未找到:', { contentDiv: !!contentDiv, button: !!button });
+                    return;
+                }
+                
+                const arrow = button.querySelector('.ai-arrow');
+                const isExpanded = contentDiv.classList.contains('expanded');
+                
+                console.log('📊 当前状态:', { isExpanded, display: contentDiv.style.display });
+                
+                // 设置防抖标记
+                isToggling[newsId] = true;
+                
+                if (!isExpanded) {
+                    // 展开 AI 分析
+                    console.log('📈 展开AI分析区域');
+                    
+                    // 1. 展开AI分析区域
+                    contentDiv.style.display = 'block';
+                    setTimeout(() => {
+                        contentDiv.classList.add('expanded');
+                        
+                        // 检查是否首次展开，如果是则应用打字机效果
+                        if (!isFirstExpand[newsId]) {
+                            console.log('⌨️ 首次展开，启动打字机效果');
+                            isFirstExpand[newsId] = true;
+                            
+                            // 等待展开动画完成后开始打字机效果
+                             setTimeout(() => {
+                                 showAIAnalysisWithTypewriter(contentDiv, newsId);
+                             }, expandAnimationSpeed * 1000);
+                        }
+                    }, 10);
+                    testResults.contentToggle = true;
+                    updateStatus('contentStatus', '显示', 'pass');
+                    
+                    // 2. 按钮箭头变化
+                    if (arrow) {
+                        arrow.textContent = '▲';
+                        testResults.arrowChange = true;
+                        updateStatus('arrowStatus', '▲ (展开)', 'pass');
+                    }
+                    
+                    // 3. 添加active样式类
+                    button.classList.add('active');
+                    testResults.activeClass = true;
+                    updateStatus('activeStatus', '已激活', 'pass');
+                    
+                } else {
+                    // 收起 AI 分析
+                    console.log('📉 收起AI分析区域');
+                    
+                    // 1. 收起AI分析区域
+                    contentDiv.classList.remove('expanded');
+                    setTimeout(() => {
+                        contentDiv.style.display = 'none';
+                    }, 600); // 修正为与CSS动画时间一致
+                    updateStatus('contentStatus', '隐藏', 'fail');
+                    testResults.contentToggle = false;
+                    
+                    // 2. 按钮箭头变化
+                    if (arrow) {
+                        arrow.textContent = '▼';
+                        testResults.arrowChange = false;
+                        updateStatus('arrowStatus', '▼ (收起)', 'fail');
+                    }
+                    
+                    // 3. 移除active样式类
+                    button.classList.remove('active');
+                    testResults.activeClass = false;
+                    updateStatus('activeStatus', '未激活', 'fail');
+                }
+                
+                // 4. 缩放动画效果
+                console.log('🎬 触发缩放动画');
+                button.style.transform = 'scale(0.95)';
+                testResults.scaleAnimation = true;
+                updateStatus('scaleStatus', '已触发', 'pass');
+                
+                setTimeout(() => {
+                    button.style.transform = 'scale(1)';
+                    console.log('✅ 缩放动画完成');
+                }, 150);
+                
+                // 清除防抖标记
+                setTimeout(() => {
+                    isToggling[newsId] = false;
+                    console.log('🔓 防抖标记已清除');
+                }, 650); // 稍微延长一点确保动画完全完成
+                
+            } catch (error) {
+                console.error('💥 toggleAIAnalysis错误:', error);
+                // 出错时也要清除防抖标记
+                isToggling[newsId] = false;
+            }
+        }
+        
+        // 更新状态显示
+        function updateStatus(elementId, text, type) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.textContent = text;
+                element.className = `status-indicator status-${type}`;
+            }
+        }
+        
+        // 重置测试
+        function resetTest() {
+            const contentDiv = document.getElementById('ai-content-test1');
+            const button = document.querySelector('.ai-analysis-btn[data-news-id="test1"]');
+            const arrow = button.querySelector('.ai-arrow');
+            
+            // 重置状态
+            contentDiv.style.display = 'none';
+            contentDiv.classList.remove('expanded');
+            if (arrow) arrow.textContent = '▼';
+            button.classList.remove('active');
+            button.style.transform = 'scale(1)';
+            
+            // 重置首次展开标记
+            isFirstExpand['test1'] = false;
+            
+            // 清除防抖标记
+            isToggling['test1'] = false;
+            
+            // 恢复原始文本内容
+            const textElements = contentDiv.querySelectorAll('p, div');
+            textElements.forEach(element => {
+                if (element.hasAttribute('data-original-text')) {
+                    element.textContent = element.getAttribute('data-original-text');
+                } else {
+                    // 保存原始文本
+                    element.setAttribute('data-original-text', element.textContent);
+                }
+            });
+            
+            // 重置测试结果
+            testResults = {
+                contentToggle: false,
+                arrowChange: false,
+                activeClass: false,
+                scaleAnimation: false
+            };
+            
+            // 重置状态显示
+            updateStatus('contentStatus', '隐藏', 'fail');
+            updateStatus('arrowStatus', '▼ (收起)', 'fail');
+            updateStatus('activeStatus', '未激活', 'fail');
+            updateStatus('scaleStatus', '未触发', 'fail');
+            
+            console.log('🔄 测试已重置，下次展开将重新触发打字机效果');
+        }
+        
+        // 手动切换
+        function toggleManual() {
+            toggleAIAnalysis('test1');
+        }
+        
+        // 显示控制台日志
+        function showConsoleLog() {
+            console.log('📊 当前测试结果:', testResults);
+            console.log('🎯 所有测试项目:', {
+                '内容区域切换': testResults.contentToggle ? '✅ 通过' : '❌ 未通过',
+                '箭头状态变化': testResults.arrowChange ? '✅ 通过' : '❌ 未通过',
+                'Active样式类': testResults.activeClass ? '✅ 通过' : '❌ 未通过',
+                '缩放动画效果': testResults.scaleAnimation ? '✅ 通过' : '❌ 未通过'
+            });
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 界面状态切换测试页面加载完成');
+            setupAIAnalysisEventDelegation();
+            console.log('✅ 事件委托已设置');
+            
+            // 初始化：保存所有文本元素的原始内容
+            const contentDiv = document.getElementById('ai-content-test1');
+            if (contentDiv) {
+                const textElements = contentDiv.querySelectorAll('p, div');
+                textElements.forEach(element => {
+                    if (element.textContent.trim()) {
+                        element.setAttribute('data-original-text', element.textContent);
+                    }
+                });
+                console.log('💾 已保存原始文本内容');
+            }
+            
+            console.log('💡 点击AI分析按钮开始测试');
+        });
+    </script>
+</body>
+</html>

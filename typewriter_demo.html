@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>打字機效果演示</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .demo-button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+            margin-bottom: 30px;
+        }
+
+        .demo-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .demo-button:active {
+            transform: translateY(0);
+        }
+
+        .demo-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .text-container {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            min-height: 50px;
+            border: 2px solid #e9ecef;
+            transition: all 0.5s ease;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .text-container.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .typewriter-text {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #333;
+            text-align: left;
+            min-height: 20px;
+        }
+
+        .cursor {
+            display: inline-block;
+            background-color: #333;
+            width: 2px;
+            height: 20px;
+            animation: blink 1s infinite;
+            margin-left: 2px;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .reset-button {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 14px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .reset-button:hover {
+            background: #5a6268;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 打字機效果演示</h1>
+        <p>點擊按鈕體驗文字逐字輸出和動態擴展效果</p>
+        
+        <button class="demo-button" id="startButton" onclick="startTypewriter()">
+            ✨ 開始打字機效果
+        </button>
+        
+        <div class="text-container" id="textContainer">
+            <div class="typewriter-text" id="typewriterText"></div>
+        </div>
+        
+        <button class="reset-button" id="resetButton" onclick="resetDemo()" style="display: none;">
+            🔄 重新開始
+        </button>
+    </div>
+
+    <script>
+        // 模擬文字內容
+        const sampleTexts = [
+            "🚀 歡迎來到打字機效果演示！這是一個模擬AI分析的動態文字輸出系統。",
+            "\n\n📊 情緒分析：當前市場情緒偏向樂觀，投資者信心指數上升，預期未來走勢穩健向上。",
+            "\n\n🔗 關聯分析：科技股與新能源板塊呈現正相關性，建議關注相關概念股的聯動效應。",
+            "\n\n📈 影響分析：政策利好持續釋放，預計將對相關產業產生積極推動作用，市場前景看好。",
+            "\n\n💡 投資建議：\n• 建議適度增加科技股配置\n• 關注新能源汽車產業鏈\n• 控制風險，分散投資\n• 保持長期投資視角"
+        ];
+
+        let currentTextIndex = 0;
+        let currentCharIndex = 0;
+        let isTyping = false;
+        let typewriterInterval;
+
+        function startTypewriter() {
+            if (isTyping) return;
+            
+            const button = document.getElementById('startButton');
+            const container = document.getElementById('textContainer');
+            const textElement = document.getElementById('typewriterText');
+            const resetButton = document.getElementById('resetButton');
+            
+            // 禁用按鈕並顯示載入狀態
+            button.disabled = true;
+            button.innerHTML = '<div class="loading"></div>正在分析中...';
+            
+            // 顯示容器
+            container.classList.add('active');
+            
+            // 延遲開始打字效果
+            setTimeout(() => {
+                isTyping = true;
+                currentTextIndex = 0;
+                currentCharIndex = 0;
+                textElement.innerHTML = '';
+                
+                typeNextCharacter();
+            }, 1000);
+        }
+
+        function typeNextCharacter() {
+            if (currentTextIndex >= sampleTexts.length) {
+                // 完成所有文字輸出
+                finishTypewriter();
+                return;
+            }
+
+            const currentText = sampleTexts[currentTextIndex];
+            const textElement = document.getElementById('typewriterText');
+            
+            if (currentCharIndex < currentText.length) {
+                // 添加當前字符
+                const char = currentText[currentCharIndex];
+                if (char === '\n') {
+                    textElement.innerHTML += '<br>';
+                } else {
+                    textElement.innerHTML += char;
+                }
+                
+                // 添加光標
+                textElement.innerHTML += '<span class="cursor"></span>';
+                
+                currentCharIndex++;
+                
+                // 動態調整容器大小
+                adjustContainerSize();
+                
+                // 設置下一個字符的延遲
+                const delay = getTypingDelay(char);
+                typewriterInterval = setTimeout(() => {
+                    // 移除光標
+                    textElement.innerHTML = textElement.innerHTML.replace('<span class="cursor"></span>', '');
+                    typeNextCharacter();
+                }, delay);
+            } else {
+                // 當前文字段落完成，移動到下一段
+                currentTextIndex++;
+                currentCharIndex = 0;
+                
+                // 段落間停頓
+                setTimeout(() => {
+                    typeNextCharacter();
+                }, 500);
+            }
+        }
+
+        function getTypingDelay(char) {
+            // 根據字符類型設置不同的打字速度
+            if (char === '，' || char === '。' || char === '！' || char === '？') {
+                return 300; // 標點符號後停頓較長
+            } else if (char === ' ') {
+                return 100; // 空格停頓較短
+            } else {
+                return Math.random() * 100 + 50; // 普通字符隨機延遲
+            }
+        }
+
+        function adjustContainerSize() {
+            const container = document.getElementById('textContainer');
+            const textElement = document.getElementById('typewriterText');
+            
+            // 動態調整容器高度
+            const textHeight = textElement.scrollHeight;
+            container.style.minHeight = (textHeight + 40) + 'px';
+            
+            // 滾動到底部
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function finishTypewriter() {
+            isTyping = false;
+            const button = document.getElementById('startButton');
+            const resetButton = document.getElementById('resetButton');
+            const textElement = document.getElementById('typewriterText');
+            
+            // 移除最後的光標
+            textElement.innerHTML = textElement.innerHTML.replace('<span class="cursor"></span>', '');
+            
+            // 恢復按鈕狀態
+            button.disabled = false;
+            button.innerHTML = '✅ 分析完成';
+            
+            // 顯示重置按鈕
+            resetButton.style.display = 'inline-block';
+            
+            // 添加完成動畫
+            const container = document.getElementById('textContainer');
+            container.style.borderColor = '#28a745';
+            container.style.boxShadow = '0 0 20px rgba(40, 167, 69, 0.3)';
+        }
+
+        function resetDemo() {
+            // 清除定時器
+            if (typewriterInterval) {
+                clearTimeout(typewriterInterval);
+            }
+            
+            // 重置狀態
+            isTyping = false;
+            currentTextIndex = 0;
+            currentCharIndex = 0;
+            
+            // 重置UI
+            const button = document.getElementById('startButton');
+            const container = document.getElementById('textContainer');
+            const textElement = document.getElementById('typewriterText');
+            const resetButton = document.getElementById('resetButton');
+            
+            button.disabled = false;
+            button.innerHTML = '✨ 開始打字機效果';
+            
+            container.classList.remove('active');
+            container.style.minHeight = '50px';
+            container.style.borderColor = '#e9ecef';
+            container.style.boxShadow = 'none';
+            
+            textElement.innerHTML = '';
+            resetButton.style.display = 'none';
+        }
+
+        // 防止頁面刷新時出現錯誤
+        window.addEventListener('beforeunload', () => {
+            if (typewriterInterval) {
+                clearTimeout(typewriterInterval);
+            }
+        });
+    </script>
+</body>
+</html>

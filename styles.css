@@ -16,6 +16,76 @@
     --backdrop-blur: blur(15px);
 }
 
+/* 暗黑模式变量 */
+[data-theme="dark"] {
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --bg-card: rgba(30, 41, 59, 0.8);
+    --text-primary: #f1f5f9;
+    --text-secondary: #cbd5e1;
+    --accent-color: #60a5fa;
+    --border-color: #475569;
+    --shadow-color: rgba(0, 0, 0, 0.3);
+    --news-bg: rgba(30, 41, 59, 0.9);
+    --news-border: #475569;
+    --news-hover: rgba(30, 41, 59, 0.95);
+    
+    /* 情绪分析颜色 - 暗黑模式 */
+    --sentiment-positive-bg: #22c55e;
+    --sentiment-negative-bg: #ef4444;
+    --sentiment-neutral-bg: #f59e0b;
+    --stock-tag-bg: #3b82f6;
+    --stock-tag-hover-bg: #2563eb;
+}
+
+/* 暗黑模式 - AI分析样式 */
+[data-theme="dark"] .ai-analysis-title {
+    color: var(--text-primary);
+    border-bottom-color: var(--accent-color);
+}
+
+[data-theme="dark"] .ai-analysis-summary {
+    color: var(--text-secondary);
+    background: rgba(96, 165, 250, 0.15);
+    border-left-color: var(--accent-color);
+}
+
+[data-theme="dark"] .analysis-item {
+    background: rgba(30, 41, 59, 0.8);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .analysis-item:hover {
+    background: rgba(30, 41, 59, 0.95);
+    border-color: rgba(96, 165, 250, 0.3);
+}
+
+[data-theme="dark"] .item-title {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .item-score {
+    color: var(--accent-color);
+    background: rgba(96, 165, 250, 0.15);
+}
+
+[data-theme="dark"] .item-content {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .ai-section {
+    background: rgba(30, 41, 59, 0.7);
+    border-left-color: var(--accent-color);
+}
+
+[data-theme="dark"] .ai-section h4 {
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .ai-content-text {
+    color: var(--text-secondary);
+}
+
 /* 白天模式 */
 [data-theme="light"] {
     --bg-primary: linear-gradient(135deg, #ffffff 0%, #f7fafc 50%, #edf2f7 100%);
@@ -30,6 +100,61 @@
     --accent-tertiary: #2f855a;
     --shadow-color: rgba(0, 0, 0, 0.15);
     --backdrop-blur: blur(20px);
+    
+    /* 情绪分析颜色 - 白天模式 */
+    --sentiment-positive-bg: #16a34a;
+    --sentiment-negative-bg: #dc2626;
+    --sentiment-neutral-bg: #f59e0b;
+    --stock-tag-bg: #2563eb;
+    --stock-tag-hover-bg: #1d4ed8;
+}
+
+/* 白天模式 - AI分析样式 */
+[data-theme="light"] .ai-analysis-title {
+    color: var(--text-primary);
+    border-bottom-color: var(--accent-color);
+}
+
+[data-theme="light"] .ai-analysis-summary {
+    color: var(--text-secondary);
+    background: rgba(43, 108, 176, 0.1);
+    border-left-color: var(--accent-color);
+}
+
+[data-theme="light"] .analysis-item {
+    background: rgba(255, 255, 255, 0.8);
+    border-color: var(--border-color);
+}
+
+[data-theme="light"] .analysis-item:hover {
+    background: rgba(255, 255, 255, 0.98);
+    border-color: rgba(43, 108, 176, 0.3);
+}
+
+[data-theme="light"] .item-title {
+    color: var(--text-primary);
+}
+
+[data-theme="light"] .item-score {
+    color: var(--accent-color);
+    background: rgba(43, 108, 176, 0.1);
+}
+
+[data-theme="light"] .item-content {
+    color: var(--text-secondary);
+}
+
+[data-theme="light"] .ai-section {
+    background: rgba(247, 250, 252, 0.8);
+    border-left-color: var(--accent-color);
+}
+
+[data-theme="light"] .ai-section h4 {
+    color: var(--text-primary);
+}
+
+[data-theme="light"] .ai-content-text {
+    color: var(--text-secondary);
 }
 
 /* 全局样式 */
@@ -838,6 +963,20 @@ input:checked + .slider:before {
         min-height: 500px;
     }
     
+    .news-item {
+        margin-bottom: 15px;
+        padding: 15px;
+    }
+    
+    .news-item h2 {
+        font-size: 20px;
+    }
+    
+    .news-meta {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
     .article-title {
         font-size: 28px;
         line-height: 1.3;
@@ -870,6 +1009,27 @@ input:checked + .slider:before {
         bottom: 15px;
         padding: 12px 20px;
         font-size: 11px;
+    }
+    
+    .ai-analysis-btn {
+        font-size: 13px;
+        padding: 8px 14px;
+    }
+    
+    .ai-analysis-content {
+        padding: 15px;
+    }
+    
+    .ai-section {
+        padding: 12px;
+    }
+    
+    .ai-section h4 {
+        font-size: 14px;
+    }
+    
+    .ai-content-text {
+        font-size: 13px;
     }
 }
 
@@ -939,6 +1099,309 @@ input:checked + .slider:before {
     background: rgba(255, 255, 255, 0.3);
 }
 
+/* AI 分析功能样式 */
+.ai-analysis-section {
+    margin-top: 15px;
+    border-top: 1px solid var(--border-color);
+    padding-top: 15px;
+}
+
+.ai-analysis-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    padding: 12px 18px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    backdrop-filter: var(--backdrop-blur);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 8px var(--shadow-color);
+}
+
+.ai-analysis-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--shadow-color);
+    border-color: var(--accent-color);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.ai-analysis-btn.active {
+    background: rgba(0, 212, 255, 0.1);
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+}
+
+.ai-analysis-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.1), transparent);
+    transition: left 0.5s ease;
+}
+
+.ai-analysis-btn:hover::before {
+    left: 100%;
+}
+
+.ai-icon {
+    font-size: 16px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+.ai-arrow {
+    font-size: 12px;
+    transition: transform 0.3s ease;
+}
+
+.ai-analysis-content {
+    margin-top: 15px;
+    background: var(--bg-card);
+    border-radius: 15px;
+    padding: 20px;
+    border: 1px solid var(--border-color);
+    backdrop-filter: var(--backdrop-blur);
+    box-shadow: 0 4px 16px var(--shadow-color);
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.8s ease, opacity 0.6s ease, padding 0.8s ease, box-shadow 0.3s ease;
+}
+
+.ai-analysis-content.expanded {
+    max-height: 2000px;
+    opacity: 1;
+    padding: 20px;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.ai-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 30px;
+    color: var(--text-secondary);
+}
+
+.loading-spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid var(--border-color);
+    border-top: 3px solid var(--accent-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.ai-result {
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* AI分析字段樣式 */
+.ai-field {
+    margin-bottom: 15px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+.ai-field:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.ai-field:hover {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+    padding: 12px;
+    margin: 0 -12px 15px -12px;
+}
+
+.ai-field strong {
+    color: var(--accent-color);
+    font-weight: 600;
+    margin-right: 10px;
+    font-size: 14px;
+    display: inline-block;
+    min-width: 80px;
+}
+
+/* 情緒標籤樣式 */
+.mood-tag {
+    display: inline-block;
+    padding: 6px 14px;
+    background: linear-gradient(135deg, var(--accent-secondary), #ff4757);
+    color: white;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    box-shadow: 0 3px 8px rgba(255, 71, 87, 0.3);
+    transition: all 0.3s ease;
+    cursor: default;
+}
+
+.mood-tag:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 71, 87, 0.4);
+}
+
+/* 關聯內容樣式 */
+.relation-content {
+    color: var(--text-secondary);
+    font-style: italic;
+    background: rgba(0, 212, 255, 0.1);
+    padding: 8px 12px;
+    border-radius: 8px;
+    display: inline-block;
+    margin-top: 6px;
+    border-left: 3px solid var(--accent-color);
+    transition: all 0.3s ease;
+    max-width: 100%;
+    word-wrap: break-word;
+}
+
+.relation-content:hover {
+    background: rgba(0, 212, 255, 0.15);
+    transform: translateX(3px);
+}
+
+/* 深度分析內容樣式 */
+.analyze-content {
+    margin-top: 10px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 10px;
+    border: 1px solid rgba(0, 212, 255, 0.2);
+    color: var(--text-secondary);
+    line-height: 1.8;
+    white-space: pre-wrap;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.analyze-content:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(0, 212, 255, 0.3);
+}
+
+.analyze-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(180deg, var(--accent-color), var(--accent-tertiary));
+    border-radius: 0 2px 2px 0;
+}
+
+/* 白天模式下的AI字段樣式調整 */
+[data-theme="light"] .ai-field {
+    border-bottom-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .ai-field:hover {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+[data-theme="light"] .relation-content {
+    background: rgba(43, 108, 176, 0.1);
+    color: var(--text-primary);
+}
+
+[data-theme="light"] .relation-content:hover {
+    background: rgba(43, 108, 176, 0.15);
+}
+
+[data-theme="light"] .analyze-content {
+    background: rgba(0, 0, 0, 0.03);
+    border-color: rgba(43, 108, 176, 0.2);
+    color: var(--text-primary);
+}
+
+[data-theme="light"] .analyze-content:hover {
+    background: rgba(0, 0, 0, 0.05);
+    border-color: rgba(43, 108, 176, 0.3);
+}
+
+.ai-section {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 10px;
+    border-left: 4px solid var(--accent-color);
+    transition: all 0.3s ease;
+}
+
+.ai-section:hover {
+    background: rgba(255, 255, 255, 0.05);
+    transform: translateX(5px);
+}
+
+.ai-section:last-child {
+    margin-bottom: 0;
+}
+
+.ai-section h4 {
+    color: var(--accent-color);
+    font-size: 16px;
+    margin-bottom: 10px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ai-content-text {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    font-size: 14px;
+    min-height: 20px;
+}
+
+/* AI 內容文字樣式 */
+.ai-content-text {
+    position: relative;
+}
+
 /* 焦点和选择样式 */
 ::selection {
     background: rgba(0, 212, 255, 0.3);
@@ -949,3 +1412,223 @@ input:checked + .slider:before {
     outline: 2px solid rgba(0, 212, 255, 0.5);
     outline-offset: 2px;
 }
+
+/* 打字機光標閃爍動畫 */
+@keyframes blink {
+    0%, 50% {
+        border-color: #007bff;
+        opacity: 1;
+    }
+    51%, 100% {
+        border-color: transparent;
+        opacity: 0;
+    }
+}
+
+/* AI分析基础样式 */
+.ai-analysis-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+    text-align: center;
+    padding: 8px 0;
+    border-bottom: 2px solid var(--accent-color);
+}
+
+.ai-analysis-summary {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 20px;
+    padding: 12px;
+    background: rgba(43, 108, 176, 0.1);
+    border-radius: 8px;
+    border-left: 4px solid var(--accent-color);
+}
+
+.analysis-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 12px;
+    transition: all 0.3s ease;
+}
+
+/* 通用悬停效果 - 仅包含变换和阴影 */
+.analysis-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--shadow-color);
+}
+
+.item-title {
+    color: var(--text-primary);
+    font-weight: 600;
+    margin-bottom: 8px;
+    font-size: 16px;
+}
+
+.item-score {
+    color: var(--accent-color);
+    background: rgba(43, 108, 176, 0.1);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    display: inline-block;
+    margin-bottom: 8px;
+}
+
+.item-content {
+    color: var(--text-secondary);
+    line-height: 1.5;
+    font-size: 14px;
+}
+
+/* AI 分析項目容器 */
+.ai-analysis-items {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* 分析項目樣式 */
+.analysis-item {
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 10px;
+    padding: 16px;
+    border: 1px solid #e2e8f0;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* 移除重复的悬停样式，已在上方统一定义 */
+
+/* 項目標題和分數 */
+.item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.item-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0;
+}
+
+.item-score {
+    font-size: 14px;
+    font-weight: 700;
+    color: #667eea;
+    background: rgba(102, 126, 234, 0.1);
+    padding: 4px 8px;
+    border-radius: 12px;
+}
+
+/* 項目內容 */
+.item-content {
+    font-size: 14px;
+    color: #475569;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* 情绪分析颜色样式 */
+.sentiment-positive {
+    background-color: var(--sentiment-positive-bg) !important;
+    color: white !important;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+.sentiment-negative {
+    background-color: var(--sentiment-negative-bg) !important;
+    color: white !important;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+.sentiment-neutral {
+    background-color: var(--sentiment-neutral-bg) !important;
+    color: white !important;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+/* 股票标签样式 */
+.stock-tag {
+    display: inline-block;
+    background-color: var(--stock-tag-bg);
+    color: white;
+    padding: 2px 6px;
+    margin: 2px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.stock-tag:hover {
+    background-color: var(--stock-tag-hover-bg);
+    transform: translateY(-1px);
+}
+
+.ai-section {
+    margin-bottom: 20px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 8px;
+    border-left: 4px solid #667eea;
+    transition: all 0.5s ease;
+}
+
+.ai-section h4 {
+    margin: 0 0 8px 0;
+    color: #1e293b;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.ai-content-text {
+    line-height: 1.6;
+    color: #475569;
+    font-size: 13px;
+    min-height: 20px;
+}
+
+/* AI 加載動畫 */
+.ai-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    gap: 8px;
+}
+
+.ai-loading-text {
+    color: #667eea;
+    font-size: 13px;
+}
+
+.loading-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #e2e8f0;
+    border-top: 2px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 深色模式適配 - 已在文件开头统一定义 */

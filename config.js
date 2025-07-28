@@ -10,7 +10,7 @@ const SUPABASE_CONFIG = {
     anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV3dmxkdXByeHBwd2Rramt2d2J5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk5NDYxMTMsImV4cCI6MjA2NTUyMjExM30.IT_7wL-0Buf1iyGKI1cw2PY0GtlKFljFiNOVYBvA_o0',
     
     // 測試表名稱 (使用實際存在的n8n_cls_news表進行測試)
-    tableName: 'n8n_cls_news',
+    tableName: 'n8n_cls_news_geminiai',
     
     // 數據庫查詢配置
     queryConfig: {

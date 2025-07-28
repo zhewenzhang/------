@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>情感标签测试页面</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        .test-content {
+            margin: 10px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 6px;
+            border-left: 4px solid #007bff;
+        }
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()">切换主题</button>
+    
+    <h1>情感标签功能测试</h1>
+    
+    <div class="test-section">
+        <h2>测试说明</h2>
+        <p>本页面用于测试情感标签的显示效果：</p>
+        <ul>
+            <li><strong>正面情感</strong>：绿色背景白色文字 (#16a34a / #15803d)</li>
+            <li><strong>负面情感</strong>：红色背景白色文字 (#dc2626 / #b91c1c)</li>
+            <li><strong>中性情感</strong>：橘色背景白色文字 (#ea580c / #c2410c)</li>
+        </ul>
+    </div>
+    
+    <div class="test-section">
+        <h2>原始文本测试</h2>
+        <div class="test-content" id="test1">
+            <p>市场情绪分析显示：投资者对该股票持正面态度，认为其发展前景积极乐观。</p>
+        </div>
+        <div class="test-content" id="test2">
+            <p>分析师表示该公司面临负面因素，投资风险较高，市场反应消极悲观。</p>
+        </div>
+        <div class="test-content" id="test3">
+            <p>专家认为当前市场处于中性状态，投资者应保持中立观望态度。</p>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>处理后文本测试</h2>
+        <div class="test-content" id="processed1">
+            <!-- 这里将显示处理后的内容 -->
+        </div>
+        <div class="test-content" id="processed2">
+            <!-- 这里将显示处理后的内容 -->
+        </div>
+        <div class="test-content" id="processed3">
+            <!-- 这里将显示处理后的内容 -->
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>手动标签测试</h2>
+        <div class="test-content">
+            <p>手动创建的情感标签：</p>
+            <p>
+                <span class="sentiment-positive">正面</span>
+                <span class="sentiment-negative">负面</span>
+                <span class="sentiment-neutral">中性</span>
+            </p>
+            <p>
+                <span class="sentiment-positive">积极</span>
+                <span class="sentiment-negative">消极</span>
+                <span class="sentiment-neutral">中立</span>
+            </p>
+            <p>
+                <span class="sentiment-positive">乐观</span>
+                <span class="sentiment-negative">悲观</span>
+            </p>
+        </div>
+    </div>
+    
+    <script>
+        // 情感标签处理函数
+        function processAnalysisContent(content, itemTitle) {
+            let processedContent = content;
+            
+            // 处理情感倾向
+            if (itemTitle && itemTitle.includes('情感')) {
+                // 使用独立的replace调用，确保所有匹配都被处理
+                processedContent = processedContent.replace(/(正面|积极|乐观)/g, '<span class="sentiment-positive">$1</span>');
+                
+                processedContent = processedContent.replace(/(负面|消极|悲观)/g, '<span class="sentiment-negative">$1</span>');
+                
+                processedContent = processedContent.replace(/(中性|中立)/g, '<span class="sentiment-neutral">$1</span>');
+            }
+            
+            return processedContent;
+        }
+        
+        // 主题切换功能
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        }
+        
+        // 初始化主题
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        }
+        
+        // 页面加载完成后执行测试
+        document.addEventListener('DOMContentLoaded', function() {
+            initTheme();
+            
+            // 测试processAnalysisContent函数
+            const test1 = document.getElementById('test1').textContent;
+            const test2 = document.getElementById('test2').textContent;
+            const test3 = document.getElementById('test3').textContent;
+            
+            // 处理文本并显示结果
+            document.getElementById('processed1').innerHTML = processAnalysisContent(test1, '情感倾向');
+            document.getElementById('processed2').innerHTML = processAnalysisContent(test2, '情感倾向');
+            document.getElementById('processed3').innerHTML = processAnalysisContent(test3, '情感倾向');
+            
+            console.log('✅ 情感标签测试页面加载完成');
+            console.log('📊 测试结果：');
+            console.log('1. 原始文本1:', test1);
+            console.log('2. 处理后1:', processAnalysisContent(test1, '情感倾向'));
+            console.log('3. 原始文本2:', test2);
+            console.log('4. 处理后2:', processAnalysisContent(test2, '情感倾向'));
+            console.log('5. 原始文本3:', test3);
+            console.log('6. 处理后3:', processAnalysisContent(test3, '情感倾向'));
+        });
+    </script>
+</body>
+</html>
