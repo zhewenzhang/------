@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>打字机效果速度测试</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .controls {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+
+        label {
+            font-weight: 600;
+            color: #555;
+            min-width: 120px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 6px;
+            background: #ddd;
+            border-radius: 3px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #667eea;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .value-display {
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .test-area {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .test-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .test-content {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 120px;
+            font-size: 16px;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .status {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .preset-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .preset-btn {
+            background: #28a745;
+            font-size: 14px;
+            padding: 8px 16px;
+        }
+
+        .preset-btn:hover {
+            background: #218838;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        .typewriter-cursor {
+            animation: blink 1s infinite;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .sample-selector {
+            margin-bottom: 15px;
+        }
+
+        select {
+            padding: 8px 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 打字机效果速度测试</h1>
+        
+        <div class="status">
+            <strong>当前设置：</strong>
+            <span id="currentStatus">速度: 80ms/字符 | 状态: 就绪</span>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>打字速度:</label>
+                <input type="range" id="speedSlider" min="20" max="200" step="10" value="80">
+                <div class="value-display" id="speedValue">80ms</div>
+            </div>
+            
+            <div class="control-group">
+                <label>预设速度:</label>
+                <div class="preset-buttons">
+                    <button class="preset-btn" onclick="setSpeed(30)">极快 (30ms)</button>
+                    <button class="preset-btn" onclick="setSpeed(50)">快速 (50ms)</button>
+                    <button class="preset-btn" onclick="setSpeed(80)">标准 (80ms)</button>
+                    <button class="preset-btn" onclick="setSpeed(120)">慢速 (120ms)</button>
+                    <button class="preset-btn" onclick="setSpeed(180)">极慢 (180ms)</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-area">
+            <div class="test-title">
+                📝 测试文本选择
+                <div class="sample-selector">
+                    <select id="sampleSelector">
+                        <option value="0">短文本 - 新闻标题</option>
+                        <option value="1">中等文本 - 新闻摘要</option>
+                        <option value="2">长文本 - 详细分析</option>
+                        <option value="3">HTML文本 - 带标签</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="buttons">
+                <button onclick="startTypewriter()">🚀 开始打字</button>
+                <button onclick="stopTypewriter()">⏹️ 停止</button>
+                <button onclick="clearContent()">🗑️ 清空</button>
+                <button onclick="testAllSpeeds()">⚡ 测试所有速度</button>
+            </div>
+        </div>
+
+        <div class="test-area">
+            <div class="test-title">📺 打字效果预览</div>
+            <div class="test-content" id="typewriterDisplay">点击"开始打字"查看效果...</div>
+        </div>
+
+        <div class="test-area">
+            <div class="test-title">📊 性能统计</div>
+            <div class="test-content" id="statsDisplay">
+                <div>总字符数: <span id="totalChars">0</span></div>
+                <div>已显示字符: <span id="displayedChars">0</span></div>
+                <div>预计完成时间: <span id="estimatedTime">0秒</span></div>
+                <div>实际用时: <span id="actualTime">0秒</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let typewriterSpeed = 80;
+        let currentInterval = null;
+        let startTime = null;
+        let isTyping = false;
+
+        const sampleTexts = [
+            "AI技術革命：新一代語言模型震撼發布",
+            "最新的人工智能語言模型在多項基準測試中創下新紀錄，展現出前所未有的理解和生成能力，預計將徹底改變人機交互方式。這項突破性技術標誌著AI發展的重要里程碑。",
+            "這項突破性技術的發布標誌著人工智能領域的重大進展。新模型不僅在語言理解方面表現卓越，還能進行複雜的推理和創作。專家預測，這將為教育、醫療、金融等多個行業帶來革命性變化。該模型採用了最新的深度學習架構，通過大規模數據訓練，實現了前所未有的性能提升。",
+            '這是一個包含<span style="color: #667eea; font-weight: bold;">藍色標籤</span>和<span style="background: #ffeaa7; padding: 2px 6px; border-radius: 4px;">高亮文字</span>的HTML測試文本。'
+        ];
+
+        // 初始化
+        document.getElementById('speedSlider').addEventListener('input', function() {
+            typewriterSpeed = parseInt(this.value);
+            updateDisplay();
+        });
+
+        document.getElementById('sampleSelector').addEventListener('change', function() {
+            if (!isTyping) {
+                updateStats();
+            }
+        });
+
+        function updateDisplay() {
+            document.getElementById('speedValue').textContent = typewriterSpeed + 'ms';
+            document.getElementById('currentStatus').textContent = 
+                `速度: ${typewriterSpeed}ms/字符 | 状态: ${isTyping ? '打字中...' : '就绪'}`;
+            
+            if (!isTyping) {
+                updateStats();
+            }
+        }
+
+        function updateStats() {
+            const selectedIndex = document.getElementById('sampleSelector').value;
+            const text = sampleTexts[selectedIndex];
+            const totalChars = text.length;
+            const estimatedTime = (totalChars * typewriterSpeed / 1000).toFixed(1);
+            
+            document.getElementById('totalChars').textContent = totalChars;
+            document.getElementById('estimatedTime').textContent = estimatedTime + '秒';
+        }
+
+        function setSpeed(speed) {
+            typewriterSpeed = speed;
+            document.getElementById('speedSlider').value = speed;
+            updateDisplay();
+        }
+
+        function startTypewriter() {
+            if (isTyping) return;
+            
+            const selectedIndex = document.getElementById('sampleSelector').value;
+            const text = sampleTexts[selectedIndex];
+            const isHTML = selectedIndex == 3;
+            
+            typeWriterEffect('typewriterDisplay', text, typewriterSpeed, isHTML);
+        }
+
+        function stopTypewriter() {
+            if (currentInterval) {
+                clearInterval(currentInterval);
+                currentInterval = null;
+            }
+            isTyping = false;
+            updateDisplay();
+        }
+
+        function clearContent() {
+            stopTypewriter();
+            document.getElementById('typewriterDisplay').innerHTML = '点击"开始打字"查看效果...';
+            document.getElementById('displayedChars').textContent = '0';
+            document.getElementById('actualTime').textContent = '0秒';
+        }
+
+        function testAllSpeeds() {
+            const speeds = [30, 50, 80, 120, 180];
+            let currentSpeedIndex = 0;
+            
+            function testNextSpeed() {
+                if (currentSpeedIndex >= speeds.length) {
+                    alert('所有速度测试完成！');
+                    return;
+                }
+                
+                const speed = speeds[currentSpeedIndex];
+                setSpeed(speed);
+                
+                setTimeout(() => {
+                    startTypewriter();
+                    
+                    setTimeout(() => {
+                        currentSpeedIndex++;
+                        clearContent();
+                        setTimeout(testNextSpeed, 1000);
+                    }, 3000);
+                }, 500);
+            }
+            
+            testNextSpeed();
+        }
+
+        function typeWriterEffect(elementId, text, speed = 80, isHTML = false) {
+            if (isTyping) return;
+            
+            isTyping = true;
+            startTime = Date.now();
+            updateDisplay();
+            
+            const element = document.getElementById(elementId);
+            element.innerHTML = '';
+            
+            let i = 0;
+            const textLength = text.length;
+            
+            currentInterval = setInterval(() => {
+                if (i < textLength) {
+                    if (isHTML) {
+                        element.innerHTML = text.substring(0, i + 1) + '<span class="typewriter-cursor">|</span>';
+                    } else {
+                        element.textContent = text.substring(0, i + 1);
+                        element.innerHTML += '<span class="typewriter-cursor">|</span>';
+                    }
+                    
+                    i++;
+                    document.getElementById('displayedChars').textContent = i;
+                    
+                    const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+                    document.getElementById('actualTime').textContent = elapsed + '秒';
+                } else {
+                    // 完成打字
+                    if (isHTML) {
+                        element.innerHTML = text;
+                    } else {
+                        element.textContent = text;
+                    }
+                    
+                    clearInterval(currentInterval);
+                    currentInterval = null;
+                    isTyping = false;
+                    updateDisplay();
+                }
+            }, speed);
+        }
+
+        // 初始化显示
+        updateDisplay();
+        updateStats();
+    </script>
+</body>
+</html>

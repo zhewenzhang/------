@@ -103,9 +103,12 @@ const mockNewsData = [
     }
 ];
 
-// DOM 元素
-const updateIndicator = document.getElementById('updateIndicator');
+// 獲取DOM元素
 const tearAnimation = document.getElementById('tearAnimation');
+const refreshProgress = document.getElementById('refreshProgress');
+const refreshProgressBar = document.getElementById('refreshProgressBar');
+const refreshProgressText = document.getElementById('refreshProgressText');
+const refreshCompleteNotification = document.getElementById('refreshCompleteNotification');
 const worldTimeElement = document.getElementById('worldTime');
 
 // 將UTC時間轉換為北京時間並格式化（僅日期部分）
@@ -382,6 +385,42 @@ function displayNewsList(newsList) {
 }
 
 // 撕紙動畫效果
+function playRefreshAnimation() {
+    return new Promise((resolve) => {
+        // 显示进度条和进度文字
+        refreshProgress.classList.add('show');
+        refreshProgressText.classList.add('show');
+        
+        // 模拟进度
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += 15;
+            refreshProgressBar.style.width = progress + '%';
+            
+            if (progress >= 100) {
+                clearInterval(interval);
+                
+                // 进度完成后隐藏进度相关元素
+                setTimeout(() => {
+                    refreshProgress.classList.remove('show');
+                    refreshProgressText.classList.remove('show');
+                    refreshProgressBar.style.width = '0%';
+                    
+                    // 显示顶部完成提示
+                    refreshCompleteNotification.classList.add('show');
+                    
+                    // 2秒后隐藏提示并完成动画
+                    setTimeout(() => {
+                        refreshCompleteNotification.classList.remove('show');
+                        resolve();
+                    }, 2000);
+                }, 300);
+            }
+        }, 80);
+    });
+}
+
+// 保留原始动画函数作为备用
 function playTearAnimation() {
     return new Promise((resolve) => {
         tearAnimation.classList.add('active');
@@ -458,7 +497,7 @@ async function fetchNewsFromSupabase() {
 // 檢查數據更新
 async function checkForUpdates() {
     console.log('=== 開始檢查更新 ===');
-    showUpdateIndicator();
+    
     
     try {
         // 嘗試從 Supabase 獲取數據
@@ -490,7 +529,7 @@ async function checkForUpdates() {
                 currentNewsIndex = 0;
                 
                 // 播放撕紙動畫並更新
-                await playTearAnimation();
+                await playRefreshAnimation();
                 displayNewsList(newsData);
             } else {
                 console.log('沒有新的更新');
@@ -511,22 +550,12 @@ async function checkForUpdates() {
             displayNewsList(newsData);
         }
     } finally {
-        hideUpdateIndicator();
+        
         console.log('=== 檢查更新完成 ===');
     }
 }
 
-// 顯示更新指示器
-function showUpdateIndicator() {
-    updateIndicator.classList.add('show');
-}
 
-// 隱藏更新指示器
-function hideUpdateIndicator() {
-    setTimeout(() => {
-        updateIndicator.classList.remove('show');
-    }, 1000);
-}
 
 // 移除新聞輪播功能
 // function startNewsRotation() - 已移除
@@ -752,7 +781,7 @@ function setupBackToTop() {
 
 // AI 分析功能相关变量
 let expandAnimationSpeed = 0.6; // 展开动画速度（秒）
-let typewriterSpeed = 80; // 打字机速度（毫秒/字符）
+let typewriterSpeed = 50; // 打字机速度（毫秒/字符）- 快速模式
 let isFirstExpand = {}; // 记录每个内容区域是否首次展开
 let isToggling = {}; // 防抖标记
 
@@ -894,18 +923,87 @@ function processAnalysisContent(content, itemTitle) {
     
     // 处理关联分析中的股票标签
     if (itemTitle === '关联分析') {
-        // 匹配引号内的股票代码格式："公司名-代码.交易所"
-        const stockPattern = /"([^"]*-[A-Z0-9]+\.[A-Z]+)"/g;
-        const matches = content.match(stockPattern);
+        // 先删除方括号
+        processedContent = processedContent.replace(/\[|\]/g, '');
         
-        if (matches) {
-            matches.forEach(match => {
-                // 提取股票名称（去掉引号）
+        // 匹配多种格式的股票标签
+        // 格式1: "公司名-代码.交易所"
+        const stockPattern1 = /"([^"]*-[A-Z0-9]+\.[A-Z]+)"/g;
+        // 格式2: 公司名-代码.交易所 (无引号)
+        const stockPattern2 = /([\u4e00-\u9fa5]+[\w\s]*-[A-Z0-9]+\.[A-Z]+)/g;
+        // 格式3: "公司名-代码" (纯代码格式，如"携程-TCOM")
+        const stockPattern3 = /"([\u4e00-\u9fa5]+[\w\s]*-[A-Z]+)"/g;
+        // 格式4: 公司名-代码 (无引号，无交易所后缀，如"A股-SSE")
+        const stockPattern4 = /([\u4e00-\u9fa5A-Z]+[\w\s]*-[A-Z]+)(?![A-Z\.])/g;
+        // 格式5: "混合文本" (带引号的任意文本，如"东南亚区域SDR")
+        const stockPattern5 = /"([\u4e00-\u9fa5A-Za-z0-9\s]+)"/g;
+        
+        // 处理带引号的标准股票标签 (格式1)
+        const matches1 = content.match(stockPattern1);
+        if (matches1) {
+            matches1.forEach(match => {
                 const stockName = match.replace(/"/g, '');
                 const stockTag = `<span class="stock-tag">${stockName}</span>`;
                 processedContent = processedContent.replace(match, stockTag);
             });
         }
+        
+        // 处理带引号的简化股票标签 (格式3)
+        const matches3 = processedContent.match(stockPattern3);
+        if (matches3) {
+            matches3.forEach(match => {
+                // 避免重复处理已经被span包裹的内容
+                if (!processedContent.includes(`<span class="stock-tag">${match.replace(/"/g, '')}</span>`)) {
+                    const stockName = match.replace(/"/g, '');
+                    const stockTag = `<span class="stock-tag">${stockName}</span>`;
+                    processedContent = processedContent.replace(match, stockTag);
+                }
+            });
+        }
+        
+        // 处理不带引号的股票标签 (格式2)
+        const matches2 = processedContent.match(stockPattern2);
+        if (matches2) {
+            matches2.forEach(match => {
+                // 避免重复处理已经被span包裹的内容
+                if (!processedContent.includes(`<span class="stock-tag">${match}</span>`)) {
+                    const stockTag = `<span class="stock-tag">${match}</span>`;
+                    processedContent = processedContent.replace(new RegExp(match.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), stockTag);
+                }
+            });
+        }
+        
+        // 处理无引号无交易所后缀的股票标签 (格式4)
+        const matches4 = processedContent.match(stockPattern4);
+        if (matches4) {
+            matches4.forEach(match => {
+                // 避免重复处理已经被span包裹的内容
+                if (!processedContent.includes(`<span class="stock-tag">${match}</span>`)) {
+                    const stockTag = `<span class="stock-tag">${match}</span>`;
+                    processedContent = processedContent.replace(new RegExp(match.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), stockTag);
+                }
+            });
+        }
+        
+        // 处理带引号的混合文本标签 (格式5)
+        const matches5 = processedContent.match(stockPattern5);
+        if (matches5) {
+            matches5.forEach(match => {
+                // 避免重复处理已经被span包裹的内容
+                const stockName = match.replace(/"/g, '');
+                if (!processedContent.includes(`<span class="stock-tag">${stockName}</span>`)) {
+                    const stockTag = `<span class="stock-tag">${stockName}</span>`;
+                    processedContent = processedContent.replace(match, stockTag);
+                }
+            });
+        }
+    }
+    
+    // 处理深度分析中的分析点格式
+    if (itemTitle === '深度分析') {
+        // 格式化分析点和答案
+        processedContent = processedContent.replace(/#分析点(\d+)：([^#]*?)答：([^#]*?)(?=#分析点|$)/g, 
+            '<div class="analysis-point"><div class="question"><strong>分析点$1：</strong>$2</div><div class="answer"><strong>答：</strong>$3</div></div>');
     }
     
     return processedContent;
@@ -924,8 +1022,7 @@ function showAIAnalysisWithTypewriter(contentDiv, newsId) {
         }
         
         const analysisData = {
-            title: "AI 智能分析",
-            summary: "基于深度学习算法对新闻内容进行多维度分析，提供客观、准确的洞察。",
+            title: "",
             analysisItems: [
                 {
                     title: "情感倾向",
@@ -951,7 +1048,6 @@ function showAIAnalysisWithTypewriter(contentDiv, newsId) {
         // 创建完全隐藏的HTML结构
         const htmlContent = `
             <div class="ai-analysis-title" style="opacity: 0; height: 0; margin: 0; padding: 0;"></div>
-            <div class="ai-analysis-summary" style="opacity: 0; height: 0; margin: 0; padding: 0;"></div>
             <div class="ai-analysis-items" style="opacity: 0; height: 0; margin: 0; padding: 0;">
                 ${analysisData.analysisItems.map((_, index) => `
                     <div class="analysis-item" data-index="${index}" style="opacity: 0; height: 0; margin: 0; padding: 0;">
@@ -979,11 +1075,6 @@ function showAIAnalysisWithTypewriter(contentDiv, newsId) {
                 element: contentDiv.querySelector('.ai-analysis-title'),
                 content: analysisData.title,
                 delay: 0
-            },
-            {
-                element: contentDiv.querySelector('.ai-analysis-summary'),
-                content: analysisData.summary,
-                delay: 500
             }
         ];
         

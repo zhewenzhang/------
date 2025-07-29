@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>刷新动画测试</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+        }
+
+        .test-container {
+            text-align: center;
+            max-width: 600px;
+            padding: 40px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #00d4ff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .description {
+            font-size: 1.1rem;
+            margin-bottom: 40px;
+            opacity: 0.8;
+            line-height: 1.6;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .test-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+        }
+
+        .test-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 212, 255, 0.4);
+        }
+
+        .test-btn:active {
+            transform: translateY(0);
+        }
+
+        /* 原始动画 */
+        .original-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 10, 10, 0.9);
+            z-index: 999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .original-animation.active {
+            opacity: 1;
+            animation: originalRefresh 1.2s ease-in-out;
+        }
+
+        .original-text {
+            font-size: 32px;
+            font-weight: 300;
+            color: #ffffff;
+            background: linear-gradient(135deg, #00d4ff, #ff00ff, #00ff88);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 2s ease-in-out infinite;
+        }
+
+        @keyframes originalRefresh {
+            0% { opacity: 0; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(1.1); }
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        /* 优化动画1：简洁顶部提示 */
+        .simple-notification {
+            position: fixed;
+            top: -60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 212, 255, 0.95);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 0 0 15px 15px;
+            font-size: 16px;
+            font-weight: 500;
+            z-index: 1000;
+            transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .simple-notification.show {
+            top: 0;
+        }
+
+        /* 优化动画2：侧边滑入 */
+        .side-notification {
+            position: fixed;
+            top: 20px;
+            right: -300px;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.9), rgba(0, 153, 204, 0.9));
+            color: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 500;
+            z-index: 1000;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .side-notification.show {
+            right: 20px;
+        }
+
+        .side-notification::before {
+            content: '●';
+            color: #ffffff;
+            animation: gentlePulse 2s infinite;
+        }
+
+        @keyframes gentlePulse {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 0.4; }
+        }
+
+        /* 优化动画3：中心淡入 */
+        .center-fade {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.8);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: 500;
+            z-index: 1000;
+            opacity: 0;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+        }
+
+        .center-fade.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        /* 优化动画4：进度条 */
+        .progress-notification {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(0, 212, 255, 0.2);
+            z-index: 1000;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #00d4ff, #0099cc);
+            width: 0;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+        }
+
+        .progress-text {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 1001;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .progress-text.show {
+            opacity: 1;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>刷新动画测试</h1>
+        <div class="description">
+            测试不同的刷新动画效果，选择最舒适的方案。<br>
+            点击按钮体验各种动画效果。
+        </div>
+        
+        <div class="button-group">
+            <button class="test-btn" onclick="testOriginal()">原始动画</button>
+            <button class="test-btn" onclick="testSimple()">顶部提示</button>
+            <button class="test-btn" onclick="testSide()">侧边滑入</button>
+            <button class="test-btn" onclick="testCenter()">中心淡入</button>
+            <button class="test-btn" onclick="testProgress()">进度条</button>
+            <button class="test-btn" onclick="testCombined()">进度条+顶部提示</button>
+        </div>
+        
+        <div class="status" id="status">点击按钮测试动画效果</div>
+    </div>
+
+    <!-- 动画元素 -->
+    <div class="original-animation" id="originalAnimation">
+        <div class="original-text">正在更新新闻...</div>
+    </div>
+
+    <div class="simple-notification" id="simpleNotification">
+        新闻已更新
+    </div>
+
+    <div class="side-notification" id="sideNotification">
+        新闻内容已刷新
+    </div>
+
+    <div class="center-fade" id="centerFade">
+        内容已更新
+    </div>
+
+    <div class="progress-notification" id="progressNotification">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <div class="progress-text" id="progressText">正在更新...</div>
+
+    <script>
+        function updateStatus(message) {
+            document.getElementById('status').textContent = message;
+        }
+
+        function testOriginal() {
+            updateStatus('测试原始动画 - 全屏遮罩 + 渐变文字');
+            const animation = document.getElementById('originalAnimation');
+            animation.classList.add('active');
+            
+            setTimeout(() => {
+                animation.classList.remove('active');
+                updateStatus('原始动画完成');
+            }, 1200);
+        }
+
+        function testSimple() {
+            updateStatus('测试顶部提示 - 简洁从顶部滑下');
+            const notification = document.getElementById('simpleNotification');
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+                updateStatus('顶部提示完成');
+            }, 2000);
+        }
+
+        function testSide() {
+            updateStatus('测试侧边滑入 - 从右侧滑入提示');
+            const notification = document.getElementById('sideNotification');
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+                updateStatus('侧边滑入完成');
+            }, 2500);
+        }
+
+        function testCenter() {
+            updateStatus('测试中心淡入 - 中心位置淡入淡出');
+            const notification = document.getElementById('centerFade');
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+                updateStatus('中心淡入完成');
+            }, 1500);
+        }
+
+        function testProgress() {
+            updateStatus('测试进度条 - 顶部进度条 + 文字提示');
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            
+            progressText.classList.add('show');
+            
+            // 模拟进度
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 10;
+                progressBar.style.width = progress + '%';
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        progressBar.style.width = '0%';
+                        progressText.classList.remove('show');
+                        updateStatus('进度条完成');
+                    }, 500);
+                }
+            }, 100);
+        }
+
+        function testCombined() {
+            updateStatus('测试组合效果 - 进度条 + 顶部滑入提示');
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            const simpleNotification = document.getElementById('simpleNotification');
+            
+            // 显示进度条和进度文字
+            progressText.classList.add('show');
+            
+            // 模拟进度
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 15;
+                progressBar.style.width = progress + '%';
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    
+                    // 进度完成后隐藏进度相关元素
+                    setTimeout(() => {
+                        progressBar.style.width = '0%';
+                        progressText.classList.remove('show');
+                        
+                        // 显示顶部完成提示
+                        simpleNotification.textContent = '新闻更新完成';
+                        simpleNotification.classList.add('show');
+                        
+                        // 2秒后隐藏提示
+                        setTimeout(() => {
+                            simpleNotification.classList.remove('show');
+                            updateStatus('组合效果完成 - 推荐使用此方案');
+                        }, 2000);
+                    }, 300);
+                }
+            }, 80);
+        }
+    </script>
+</body>
+</html>

@@ -19,8 +19,27 @@
 ├── styles.css          # 樣式文件
 ├── script.js           # 主要 JavaScript 邏輯
 ├── config.js           # Supabase 配置文件
-└── README.md           # 說明文件
+├── README.md           # 說明文件
+└── tests/              # 測試文件夾
+    ├── test_data_load.html      # 數據加載測試
+    ├── test_data_load.js        # 數據加載測試腳本
+    ├── test_event_id.html       # 事件ID測試
+    ├── test_refresh_animation.html  # 刷新動畫測試
+    ├── test_sentiment.html      # 情感標籤測試
+    ├── test_timezone.html       # 時區顯示測試
+    ├── test_ui_toggle.html      # UI切換測試
+    └── typewriter_demo.html     # 打字機效果演示
 ```
+
+## 測試文件
+
+`tests/` 文件夾包含各種功能的測試頁面：
+- **數據加載測試** - 測試 Supabase 數據獲取功能
+- **動畫效果測試** - 測試刷新動畫和打字機效果
+- **UI組件測試** - 測試情感標籤、時區顯示等組件
+- **交互功能測試** - 測試主題切換、事件處理等功能
+
+訪問測試頁面：`http://localhost:3000/tests/文件名.html`
 
 ## 快速開始
 

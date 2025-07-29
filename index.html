@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>新聞推送 - Apple風格</title>
+    <title>D AI新闻助手</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -49,8 +49,15 @@
         </div>
     </main>
     
-    <!-- 撕紙動画 -->
-    <div id="tearAnimation" class="tear-animation">
+    <!-- 新的刷新动画元素 -->
+    <div class="refresh-progress" id="refreshProgress">
+        <div class="refresh-progress-bar" id="refreshProgressBar"></div>
+    </div>
+    <div class="refresh-progress-text" id="refreshProgressText">正在更新新闻...</div>
+    <div class="refresh-complete-notification" id="refreshCompleteNotification">新闻更新完成</div>
+    
+    <!-- 保留原始动画作为备用 -->
+    <div id="tearAnimation" class="tear-animation" style="display: none;">
         <div class="loading-message">
             <div class="loading-text">情報加載中</div>
             <div class="loading-dots">
@@ -74,9 +81,7 @@
     </div>
 
     <!-- 更新指示器 -->
-    <div class="update-indicator" id="updateIndicator">
-        檢查更新中...
-    </div>
+ 
     
     <!-- 主题切换按钮 -->
     <button class="theme-toggle" id="themeToggle" title="切換主題">

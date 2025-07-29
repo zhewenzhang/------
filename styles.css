@@ -660,43 +660,7 @@ input:checked + .slider:before {
     color: #ffffff;
 }
 
-/* 更新指示器 */
-.update-indicator {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: rgba(0, 212, 255, 0.9);
-    color: white;
-    padding: 12px 20px;
-    border-radius: 25px;
-    font-size: 14px;
-    font-weight: 600;
-    box-shadow: 0 8px 25px rgba(0, 212, 255, 0.3);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    z-index: 1000;
-    transform: translateX(100px);
-    opacity: 0;
-    transition: all 0.3s ease;
-}
 
-.update-indicator.show {
-    transform: translateX(0);
-    opacity: 1;
-}
-
-.update-indicator::before {
-    content: '';
-    position: absolute;
-    left: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 8px;
-    height: 8px;
-    background: #ffffff;
-    border-radius: 50%;
-    animation: gentlePulse 2s infinite;
-}
 
 /* 更柔和的脉冲动画 */
 @keyframes gentlePulse {
@@ -704,26 +668,79 @@ input:checked + .slider:before {
     50% { opacity: 0.4; transform: translateY(-50%) scale(1.05); }
 }
 
-/* 刷新动画和加载提示 */
-.tear-animation {
+/* 新的刷新动画 - 进度条 */
+.refresh-progress {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
-    height: 100%;
-    background: rgba(10, 10, 10, 0.9);
-    z-index: 999;
+    height: 4px;
+    background: rgba(0, 212, 255, 0.2);
+    z-index: 1000;
+    overflow: hidden;
     opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.4s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    transition: opacity 0.3s ease;
 }
 
-.tear-animation.active {
+.refresh-progress.show {
     opacity: 1;
-    animation: refreshAnimation 1.2s ease-in-out;
+}
+
+.refresh-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #00d4ff, #0099cc);
+    width: 0;
+    transition: width 0.1s ease;
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+}
+
+/* 进度文字提示 */
+.refresh-progress-text {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 1001;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.refresh-progress-text.show {
+    opacity: 1;
+}
+
+/* 完成提示 */
+.refresh-complete-notification {
+    position: fixed;
+    top: -60px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 212, 255, 0.95);
+    color: white;
+    padding: 15px 30px;
+    border-radius: 0 0 15px 15px;
+    font-size: 16px;
+    font-weight: 500;
+    z-index: 1000;
+    transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 20px rgba(0, 212, 255, 0.3);
+}
+
+.refresh-complete-notification.show {
+    top: 0;
+}
+
+/* 保留原始动画作为备用 */
+.tear-animation {
+    display: none;
 }
 
 /* 加载提示样式 */
@@ -998,12 +1015,7 @@ input:checked + .slider:before {
         gap: 10px;
     }
     
-    .update-indicator {
-        top: 15px;
-        right: 15px;
-        padding: 10px 16px;
-        font-size: 12px;
-    }
+
     
     .navigation-hint {
         bottom: 15px;
@@ -1433,7 +1445,6 @@ input:checked + .slider:before {
     margin-bottom: 12px;
     text-align: center;
     padding: 8px 0;
-    border-bottom: 2px solid var(--accent-color);
 }
 
 .ai-analysis-summary {
@@ -1481,8 +1492,39 @@ input:checked + .slider:before {
 
 .item-content {
     color: var(--text-secondary);
-    line-height: 1.5;
+    line-height: 1.6;
     font-size: 14px;
+}
+
+/* 深度分析格式化样式 */
+.analysis-point {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: rgba(43, 108, 176, 0.05);
+    border-radius: 8px;
+    border-left: 3px solid var(--accent-color);
+}
+
+.analysis-point .question {
+    margin-bottom: 10px;
+    color: var(--text-primary);
+    font-size: 15px;
+}
+
+.analysis-point .answer {
+    color: var(--text-secondary);
+    padding-left: 15px;
+    line-height: 1.7;
+}
+
+.analysis-point .question strong {
+    color: var(--accent-color);
+    font-weight: 600;
+}
+
+.analysis-point .answer strong {
+    color: var(--text-primary);
+    font-weight: 600;
 }
 
 /* AI 分析項目容器 */
