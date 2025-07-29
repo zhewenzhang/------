@@ -138,27 +138,12 @@ function formatDateToBeijingTime(utcDateString) {
     return `${year}年${month}月${day}日`;
 }
 
-// 組合日期和時間顯示
+// 只顯示時間部分
 function formatNewsDateTime(createdAtString, timeString) {
-    if (!createdAtString && !timeString) return '';
+    if (!timeString) return '';
     
-    // 直接從 created_at 提取日期部分
-    let dateStr = '';
-    if (createdAtString) {
-        const date = new Date(createdAtString);
-        if (!isNaN(date.getTime())) {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            dateStr = `${year}年${month}月${day}日`;
-        }
-    }
-    
-    if (timeString) {
-        return `${dateStr} ${timeString}`;
-    }
-    
-    return dateStr;
+    // 只返回時間部分，不包含日期
+    return timeString;
 }
 
 
