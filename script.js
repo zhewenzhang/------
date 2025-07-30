@@ -501,9 +501,9 @@ async function fetchNewsFromSupabase() {
 // 檢查數據更新
 async function checkForUpdates() {
     console.log('=== 開始檢查更新 ===');
-    console.log('調用堆棧:', new Error().stack);
-    console.log('自動刷新狀態:', isAutoRefreshEnabled);
-    console.log('當前時間:', new Date().toISOString());
+    console.log('觸發原因 - 自動刷新狀態:', isAutoRefreshEnabled);
+    console.log('觸發原因 - 定時器ID:', autoRefreshInterval);
+    console.log('觸發時間:', new Date().toLocaleString());
     
     
     try {
@@ -568,24 +568,45 @@ async function checkForUpdates() {
 
 // 自動刷新控制
 function startAutoRefresh() {
+    console.log('=== 嘗試啟動自動刷新 ===');
+    console.log('當前 isAutoRefreshEnabled:', isAutoRefreshEnabled);
+    console.log('當前 autoRefreshInterval:', autoRefreshInterval);
+    
     if (isAutoRefreshEnabled) {
+        // 先清除可能存在的舊定時器
+        if (autoRefreshInterval) {
+            clearInterval(autoRefreshInterval);
+            console.log('清除了舊的定時器');
+        }
+        
         autoRefreshInterval = setInterval(checkForUpdates, 60000); // 每60秒檢查一次
-        console.log('自動刷新已啟動');
+        console.log('自動刷新已啟動，定時器ID:', autoRefreshInterval);
+    } else {
+        console.log('自動刷新未啟用，跳過啟動');
     }
 }
 
 function stopAutoRefresh() {
+    console.log('=== 嘗試停止自動刷新 ===');
+    console.log('當前 autoRefreshInterval:', autoRefreshInterval);
+    
     if (autoRefreshInterval) {
         clearInterval(autoRefreshInterval);
         autoRefreshInterval = null;
-        console.log('自動刷新已停止');
+        console.log('自動刷新已停止，定時器已清除');
+    } else {
+        console.log('沒有活動的自動刷新定時器');
     }
 }
 
 function toggleAutoRefresh(enabled) {
+    console.log('=== 自動刷新開關切換 ===');
     console.log('toggleAutoRefresh 被調用，參數:', enabled);
+    console.log('切換前狀態 - isAutoRefreshEnabled:', isAutoRefreshEnabled);
+    console.log('切換前狀態 - autoRefreshInterval:', autoRefreshInterval);
+    
     isAutoRefreshEnabled = enabled;
-    console.log('isAutoRefreshEnabled 設置為:', isAutoRefreshEnabled);
+    console.log('切換後狀態 - isAutoRefreshEnabled:', isAutoRefreshEnabled);
     
     if (enabled) {
         console.log('啟動自動刷新...');
@@ -730,12 +751,12 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('未找到自動刷新開關元素 (autoRefreshToggle)');
         }
         
-        // 不再自動載入新聞，只顯示載入狀態
-        // 用戶需要手動啟用自動刷新或手動刷新來載入新聞
-        console.log('頁面初始化完成，等待用戶操作載入新聞');
+        // 頁面初始化時自動載入新聞
+        console.log('頁面初始化完成，開始自動載入新聞');
+        checkForUpdates();
         
         // 注意：自動刷新默認關閉，需要用戶手動啟用
-        // 不再自動啟動自動刷新功能
+        // 不會自動啟動定時刷新功能
         
         console.log('Page initialization completed successfully');
     } catch (error) {

@@ -1586,6 +1586,16 @@ input:checked + .slider:before {
     margin-bottom: 4px;
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dock-navigation .dock-icon-svg {
+    width: 24px;
+    height: 24px;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    filter: brightness(0.8) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
 .dock-navigation .dock-label {
@@ -1622,6 +1632,10 @@ input:checked + .slider:before {
 
 [data-theme="dark"] .dock-navigation .dock-icon {
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+[data-theme="dark"] .dock-navigation .dock-icon-svg {
+    filter: brightness(0) invert(1) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
 [data-theme="dark"] .dock-navigation .dock-label {
