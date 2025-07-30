@@ -1,4 +1,6 @@
-# 新聞推送頁面 - Apple 風格
+# Dave AI 新聞推送頁面
+
+啟動 python -m http.server 3000 後，在瀏覽器中訪問 http://localhost:3000 即可。
 
 一個簡潔優雅的新聞展示頁面，採用 Apple 設計風格，從 Supabase 數據庫獲取新聞數據。
 

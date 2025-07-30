@@ -103,13 +103,22 @@ const mockNewsData = [
     }
 ];
 
+// 安全獲取DOM元素的函數
+function safeGetElement(id) {
+    const element = document.getElementById(id);
+    if (!element) {
+        console.warn(`元素 '${id}' 未找到`);
+    }
+    return element;
+}
+
 // 獲取DOM元素
-const tearAnimation = document.getElementById('tearAnimation');
-const refreshProgress = document.getElementById('refreshProgress');
-const refreshProgressBar = document.getElementById('refreshProgressBar');
-const refreshProgressText = document.getElementById('refreshProgressText');
-const refreshCompleteNotification = document.getElementById('refreshCompleteNotification');
-const worldTimeElement = document.getElementById('worldTime');
+const tearAnimation = safeGetElement('tearAnimation');
+const refreshProgress = safeGetElement('refreshProgress');
+const refreshProgressBar = safeGetElement('refreshProgressBar');
+const refreshProgressText = safeGetElement('refreshProgressText');
+const refreshCompleteNotification = safeGetElement('refreshCompleteNotification');
+const worldTimeElement = safeGetElement('worldTime');
 
 // 將UTC時間轉換為北京時間並格式化（僅日期部分）
 function formatDateToBeijingTime(utcDateString) {
@@ -176,10 +185,20 @@ function updateWorldTime() {
     const now = new Date();
     const timeZones = document.querySelectorAll('.time-zone');
     
+    if (timeZones.length === 0) {
+        console.warn('未找到時區元素');
+        return;
+    }
+    
     timeZones.forEach(zone => {
         const timezone = zone.getAttribute('data-timezone');
         const dateElement = zone.querySelector('.time-date');
         const clockElement = zone.querySelector('.time-clock');
+        
+        if (!dateElement || !clockElement) {
+            console.warn(`時區 ${timezone} 缺少日期或時間元素`);
+            return;
+        }
         
         try {
             // 获取指定时区的时间
@@ -200,8 +219,8 @@ function updateWorldTime() {
             clockElement.textContent = timeStr;
         } catch (error) {
             console.error(`Error updating time for ${timezone}:`, error);
-            dateElement.textContent = '--/--';
-            clockElement.textContent = '--:--:--';
+            if (dateElement) dateElement.textContent = '--/--';
+            if (clockElement) clockElement.textContent = '--:--:--';
         }
     });
 }
@@ -482,6 +501,9 @@ async function fetchNewsFromSupabase() {
 // 檢查數據更新
 async function checkForUpdates() {
     console.log('=== 開始檢查更新 ===');
+    console.log('調用堆棧:', new Error().stack);
+    console.log('自動刷新狀態:', isAutoRefreshEnabled);
+    console.log('當前時間:', new Date().toISOString());
     
     
     try {
@@ -511,7 +533,6 @@ async function checkForUpdates() {
                 console.log('發現新聞更新，使用 Supabase 數據');
                 newsData = supabaseData;
                 lastUpdateTime = latestTime;
-                currentNewsIndex = 0;
                 
                 // 播放撕紙動畫並更新
                 await playRefreshAnimation();
@@ -562,11 +583,30 @@ function stopAutoRefresh() {
 }
 
 function toggleAutoRefresh(enabled) {
+    console.log('toggleAutoRefresh 被調用，參數:', enabled);
     isAutoRefreshEnabled = enabled;
+    console.log('isAutoRefreshEnabled 設置為:', isAutoRefreshEnabled);
+    
     if (enabled) {
+        console.log('啟動自動刷新...');
         startAutoRefresh();
     } else {
+        console.log('停止自動刷新...');
         stopAutoRefresh();
+    }
+    
+    // 更新開關視覺狀態
+    const autoRefreshToggle = document.getElementById('autoRefreshToggle');
+    if (autoRefreshToggle && autoRefreshToggle.checked !== enabled) {
+        autoRefreshToggle.checked = enabled;
+        console.log('開關視覺狀態已同步為:', enabled);
+    }
+    
+    // 更新狀態顯示
+    const statusElement = document.getElementById('autoRefreshStatus');
+    if (statusElement) {
+        statusElement.textContent = enabled ? '開啟' : '關閉';
+        statusElement.style.color = enabled ? 'var(--accent-color)' : 'var(--text-secondary)';
     }
 }
 
@@ -653,24 +693,49 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Setting up AI analysis event delegation...');
         setupAIAnalysisEventDelegation();
         
+        // 設置手動載入按鈕事件監聽
+        const manualLoadBtn = document.getElementById('manualLoadBtn');
+        if (manualLoadBtn) {
+            console.log('手動載入按鈕元素找到，設置事件監聽器');
+            manualLoadBtn.addEventListener('click', () => {
+                console.log('手動載入新聞被點擊');
+                manualLoadBtn.disabled = true;
+                manualLoadBtn.textContent = '載入中...';
+                
+                checkForUpdates().finally(() => {
+                    manualLoadBtn.disabled = false;
+                    manualLoadBtn.textContent = '載入新聞';
+                });
+            });
+        } else {
+            console.error('未找到手動載入按鈕元素 (manualLoadBtn)');
+        }
+        
+        // 設置Dock導航事件監聽
+        setupDockNavigation();
+        
         // 設置自動刷新開關事件監聽
         const autoRefreshToggle = document.getElementById('autoRefreshToggle');
         if (autoRefreshToggle) {
+            console.log('自動刷新開關元素找到，設置事件監聽器');
             autoRefreshToggle.addEventListener('change', (e) => {
+                console.log('自動刷新開關狀態變化:', e.target.checked);
                 toggleAutoRefresh(e.target.checked);
             });
+            
+            // 確保開關初始狀態為關閉
+            autoRefreshToggle.checked = false;
+            console.log('自動刷新開關初始狀態設置為關閉');
+        } else {
+            console.error('未找到自動刷新開關元素 (autoRefreshToggle)');
         }
         
-        // 初始載入新聞
-        console.log('Starting initial news load...');
-        setTimeout(() => {
-            checkForUpdates();
-        }, 1000);
+        // 不再自動載入新聞，只顯示載入狀態
+        // 用戶需要手動啟用自動刷新或手動刷新來載入新聞
+        console.log('頁面初始化完成，等待用戶操作載入新聞');
         
-        // 開始自動刷新（如果啟用）
-        setTimeout(() => {
-            startAutoRefresh();
-        }, 2000);
+        // 注意：自動刷新默認關閉，需要用戶手動啟用
+        // 不再自動啟動自動刷新功能
         
         console.log('Page initialization completed successfully');
     } catch (error) {
@@ -700,9 +765,9 @@ document.addEventListener('visibilitychange', () => {
         // 恢復自動刷新（如果啟用）
         if (isAutoRefreshEnabled) {
             startAutoRefresh();
+            // 移除自動檢查更新，避免意外的自動刷新
+            // checkForUpdates();
         }
-        // 立即檢查更新
-        checkForUpdates();
     }
 });
 
@@ -762,6 +827,191 @@ function setupBackToTop() {
             behavior: 'smooth'
         });
     });
+}
+
+// Dock導航設置
+function setupDockNavigation() {
+    const dockContainer = document.getElementById('dockContainer');
+    console.log('dock容器:', dockContainer);
+    
+    const dockItems = document.querySelectorAll('#dockContainer .dock-item');
+    console.log('找到的dock項目:', dockItems);
+    
+    if (dockItems.length === 0) {
+        console.warn('未找到dock導航項目');
+        // 嘗試直接查找所有dock-item
+        const allDockItems = document.querySelectorAll('.dock-item');
+        console.log('所有dock項目:', allDockItems);
+        return;
+    }
+    
+    console.log('設置Dock導航，找到', dockItems.length, '個導航項目');
+    
+    // Vue Bits風格的dock交互效果
+    const dockPanel = document.querySelector('#dockContainer .dock-panel');
+    
+    dockItems.forEach((item, index) => {
+        item.addEventListener('click', (e) => {
+            const page = item.getAttribute('data-page');
+            console.log('Dock導航點擊:', page);
+            
+            // 移除所有active狀態
+            dockItems.forEach(dock => dock.classList.remove('active'));
+            
+            // 添加active狀態到當前項目
+            item.classList.add('active');
+            
+            // 處理頁面切換
+            handlePageNavigation(page);
+        });
+    });
+    
+    // 添加鼠標移動監聽器實現Vue Bits風格的放大效果
+    if (dockPanel) {
+        dockPanel.addEventListener('mousemove', (e) => {
+            const rect = dockPanel.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            
+            dockItems.forEach((item, index) => {
+                const itemRect = item.getBoundingClientRect();
+                const itemCenterX = itemRect.left + itemRect.width / 2 - rect.left;
+                const distance = Math.abs(mouseX - itemCenterX);
+                const maxDistance = 200; // Vue Bits默認距離
+                
+                if (distance < maxDistance) {
+                    const scale = 1 + (1 - distance / maxDistance) * 0.4; // 最大放大1.4倍
+                    const translateY = -(1 - distance / maxDistance) * 8; // 最大上移8px
+                    item.style.transform = `scale(${scale}) translateY(${translateY}px)`;
+                    item.style.zIndex = Math.round(10 - distance / 20);
+                } else {
+                    item.style.transform = 'scale(1) translateY(0px)';
+                    item.style.zIndex = '1';
+                }
+            });
+        });
+        
+        dockPanel.addEventListener('mouseleave', () => {
+            dockItems.forEach(item => {
+                item.style.transform = 'scale(1) translateY(0px)';
+                item.style.zIndex = '1';
+            });
+        });
+    }
+}
+
+// 處理頁面導航
+function handlePageNavigation(page) {
+    switch(page) {
+        case 'home':
+            console.log('切換到首頁');
+            // 移除自動彈出確認對話框的邏輯，避免意外觸發刷新
+            // 用戶可以通過手動載入按鈕或Ctrl+R來刷新新聞
+            console.log('已在首頁，如需刷新請使用載入新聞按鈕');
+            break;
+        case 'summary':
+            console.log('切換到總結頁面');
+            window.location.href = 'daily-summary.html';
+            break;
+        case 'user':
+            console.log('切換到用戶頁面');
+            // 這裡可以添加用戶頁面的邏輯
+            alert('用戶頁面功能開發中...');
+            break;
+        case 'settings':
+            console.log('切換到設置頁面');
+            // 這裡可以添加設置頁面的邏輯
+            showSettingsModal();
+            break;
+        default:
+            console.warn('未知的頁面:', page);
+    }
+}
+
+// 添加放大效果
+function addMagnificationEffect(item) {
+    const siblings = item.parentElement.children;
+    const itemIndex = Array.from(siblings).indexOf(item);
+    
+    // 對相鄰項目添加輕微放大效果
+    for (let i = 0; i < siblings.length; i++) {
+        const sibling = siblings[i];
+        const distance = Math.abs(i - itemIndex);
+        
+        if (distance === 1) {
+            sibling.style.transform = 'scale(1.05) translateY(-2px)';
+        } else if (distance === 2) {
+            sibling.style.transform = 'scale(1.02) translateY(-1px)';
+        }
+    }
+}
+
+// 移除放大效果
+function removeMagnificationEffect(item) {
+    const siblings = item.parentElement.children;
+    
+    // 重置所有非active項目的變換
+    for (let sibling of siblings) {
+        if (!sibling.classList.contains('active') && sibling !== item) {
+            sibling.style.transform = '';
+        }
+    }
+}
+
+// 顯示設置模態框
+function showSettingsModal() {
+    // 創建設置模態框
+    const modal = document.createElement('div');
+    modal.className = 'settings-modal';
+    modal.innerHTML = `
+        <div class="settings-content">
+            <div class="settings-header">
+                <h3>設置</h3>
+                <button class="close-btn" onclick="this.closest('.settings-modal').remove()">&times;</button>
+            </div>
+            <div class="settings-body">
+                <div class="setting-item">
+                    <label>自動刷新間隔</label>
+                    <select id="refreshInterval">
+                        <option value="30">30秒</option>
+                        <option value="60" selected>60秒</option>
+                        <option value="120">2分鐘</option>
+                        <option value="300">5分鐘</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label>Aurora效果</label>
+                    <input type="range" id="auroraIntensity" min="0" max="100" value="50">
+                </div>
+                <div class="setting-item">
+                    <label>通知設置</label>
+                    <input type="checkbox" id="enableNotifications" checked>
+                    <span>啟用新聞通知</span>
+                </div>
+            </div>
+            <div class="settings-footer">
+                <button class="save-btn" onclick="saveSettings(); this.closest('.settings-modal').remove();">保存</button>
+                <button class="cancel-btn" onclick="this.closest('.settings-modal').remove()">取消</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+}
+
+// 保存設置
+function saveSettings() {
+    const refreshInterval = document.getElementById('refreshInterval')?.value;
+    const auroraIntensity = document.getElementById('auroraIntensity')?.value;
+    const enableNotifications = document.getElementById('enableNotifications')?.checked;
+    
+    console.log('保存設置:', {
+        refreshInterval,
+        auroraIntensity,
+        enableNotifications
+    });
+    
+    // 這裡可以添加實際的設置保存邏輯
+    alert('設置已保存！');
 }
 
 // AI 分析功能相关变量

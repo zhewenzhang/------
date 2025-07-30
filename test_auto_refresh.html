@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自動刷新功能測試</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        .test-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: var(--bg-card);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            background: var(--bg-secondary);
+        }
+        .log {
+            background: #000;
+            color: #0f0;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>自動刷新功能測試</h1>
+        
+        <div class="auto-refresh-control inline-control">
+            <label class="switch">
+                <input type="checkbox" id="autoRefreshToggle">
+                <span class="slider"></span>
+            </label>
+            <span class="switch-label">自動刷新</span>
+        </div>
+        
+        <div class="status">
+            <strong>當前狀態:</strong> <span id="currentStatus">關閉</span>
+        </div>
+        
+        <div class="status">
+            <strong>最後更新時間:</strong> <span id="lastUpdate">未更新</span>
+        </div>
+        
+        <div class="status">
+            <strong>更新計數:</strong> <span id="updateCount">0</span>
+        </div>
+        
+        <button onclick="manualTest()">手動測試開關</button>
+        <button onclick="clearLog()">清除日誌</button>
+        
+        <div class="log" id="logOutput"></div>
+    </div>
+
+    <script>
+        // 模擬自動刷新相關變量和函數
+        let isAutoRefreshEnabled = false;
+        let autoRefreshInterval;
+        let updateCount = 0;
+        
+        function log(message) {
+            const logOutput = document.getElementById('logOutput');
+            const timestamp = new Date().toLocaleTimeString();
+            logOutput.innerHTML += `[${timestamp}] ${message}<br>`;
+            logOutput.scrollTop = logOutput.scrollHeight;
+            console.log(message);
+        }
+        
+        function updateStatus() {
+            document.getElementById('currentStatus').textContent = isAutoRefreshEnabled ? '開啟' : '關閉';
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+            document.getElementById('updateCount').textContent = updateCount;
+        }
+        
+        function checkForUpdates() {
+            updateCount++;
+            log(`執行更新檢查 #${updateCount}`);
+            updateStatus();
+        }
+        
+        function startAutoRefresh() {
+            if (isAutoRefreshEnabled) {
+                autoRefreshInterval = setInterval(checkForUpdates, 5000); // 5秒間隔用於測試
+                log('自動刷新已啟動 (5秒間隔)');
+            }
+        }
+        
+        function stopAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+                log('自動刷新已停止');
+            }
+        }
+        
+        function toggleAutoRefresh(enabled) {
+            log(`toggleAutoRefresh 被調用，參數: ${enabled}`);
+            isAutoRefreshEnabled = enabled;
+            log(`isAutoRefreshEnabled 設置為: ${isAutoRefreshEnabled}`);
+            
+            if (enabled) {
+                log('啟動自動刷新...');
+                startAutoRefresh();
+            } else {
+                log('停止自動刷新...');
+                stopAutoRefresh();
+            }
+            
+            updateStatus();
+            
+            // 更新開關視覺狀態
+            const autoRefreshToggle = document.getElementById('autoRefreshToggle');
+            if (autoRefreshToggle && autoRefreshToggle.checked !== enabled) {
+                autoRefreshToggle.checked = enabled;
+                log(`開關視覺狀態已同步為: ${enabled}`);
+            }
+        }
+        
+        function manualTest() {
+            const toggle = document.getElementById('autoRefreshToggle');
+            const newState = !toggle.checked;
+            toggle.checked = newState;
+            log(`手動測試: 設置開關為 ${newState}`);
+            toggleAutoRefresh(newState);
+        }
+        
+        function clearLog() {
+            document.getElementById('logOutput').innerHTML = '';
+        }
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            log('頁面初始化完成');
+            
+            const autoRefreshToggle = document.getElementById('autoRefreshToggle');
+            if (autoRefreshToggle) {
+                log('自動刷新開關元素找到，設置事件監聽器');
+                autoRefreshToggle.addEventListener('change', (e) => {
+                    log(`自動刷新開關狀態變化: ${e.target.checked}`);
+                    toggleAutoRefresh(e.target.checked);
+                });
+                
+                // 確保開關初始狀態為關閉
+                autoRefreshToggle.checked = false;
+                log('自動刷新開關初始狀態設置為關閉');
+            } else {
+                log('錯誤: 未找到自動刷新開關元素 (autoRefreshToggle)');
+            }
+            
+            updateStatus();
+        });
+    </script>
+</body>
+</html>

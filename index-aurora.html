@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>D AI新闻助手 - Aurora版本</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="aurora.css">
+    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Aurora背景容器 -->
+    <div class="aurora-background" id="auroraBackground"></div>
+    
+    <header>
+        <div class="header-content">
+            <div class="logo">Dave AI 助手 <span class="aurora-badge">Aurora</span></div>
+            
+            <!-- 控制區域 -->
+            <div class="header-controls">
+                <span class="hint-text">點擊載入新聞 • Ctrl+R 手動刷新</span>
+                <button id="manualLoadBtn" class="manual-load-btn">載入新聞</button>
+                <div class="auto-refresh-control inline-control">
+                    <label class="switch">
+                        <input type="checkbox" id="autoRefreshToggle">
+                        <span class="slider"></span>
+                    </label>
+                    <span class="switch-label">自動刷新</span>
+                    <span id="autoRefreshStatus" style="margin-left: 10px; font-size: 12px; color: var(--text-secondary);">關閉</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            <div class="news-container">
+                <div id="newsList" class="news-list">
+                    <div class="loading">正在載入新聞...</div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- 新的刷新动画元素 -->
+    <div class="refresh-progress" id="refreshProgress">
+        <div class="refresh-progress-bar" id="refreshProgressBar"></div>
+    </div>
+    <div class="refresh-progress-text" id="refreshProgressText">正在更新新闻...</div>
+    <div class="refresh-complete-notification" id="refreshCompleteNotification">新闻更新完成</div>
+    
+    <!-- 保留原始动画作为备用 -->
+    <div id="tearAnimation" class="tear-animation" style="display: none;">
+        <div class="loading-message">
+            <div class="loading-text">情報加載中</div>
+            <div class="loading-dots">
+                <span>.</span>
+                <span>.</span>
+                <span>.</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Dock導航 -->
+    <div class="dock-navigation">
+        <div class="dock-container" id="dockContainer">
+            <div class="dock-panel">
+                <div class="dock-item active" data-page="home" title="首頁">
+                    <div class="dock-icon">🏠</div>
+                    <div class="dock-label">首頁</div>
+                </div>
+                <div class="dock-item" data-page="summary" title="總結">
+                    <div class="dock-icon">📊</div>
+                    <div class="dock-label">總結</div>
+                </div>
+                <div class="dock-item" data-page="user" title="用戶">
+                    <div class="dock-icon">👤</div>
+                    <div class="dock-label">用戶</div>
+                </div>
+                <div class="dock-item" data-page="settings" title="設置">
+                    <div class="dock-icon">⚙️</div>
+                    <div class="dock-label">設置</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Aurora控制面板 -->
+    <div class="aurora-controls" id="auroraControls">
+        <div class="aurora-control-header">
+            <span>🌌 Aurora 控制</span>
+            <button class="aurora-toggle-btn" id="auroraToggleBtn">收起</button>
+        </div>
+        <div class="aurora-control-content">
+            <div class="control-group">
+                <label>强度: <span id="intensityValue">1.0</span></label>
+                <input type="range" id="intensitySlider" min="0" max="2" step="0.1" value="1.0">
+            </div>
+            <div class="control-group">
+                <label>速度: <span id="speedValue">1.0</span></label>
+                <input type="range" id="speedSlider" min="0.1" max="3" step="0.1" value="1.0">
+            </div>
+            <div class="control-group">
+                <label>幅度: <span id="amplitudeValue">1.0</span></label>
+                <input type="range" id="amplitudeSlider" min="0.5" max="2" step="0.1" value="1.0">
+            </div>
+            <div class="control-group">
+                <label>混合: <span id="blendValue">0.5</span></label>
+                <input type="range" id="blendSlider" min="0" max="1" step="0.1" value="0.5">
+            </div>
+            <div class="control-group">
+                <label>透明度: <span id="opacityValue">0.8</span></label>
+                <input type="range" id="opacitySlider" min="0.1" max="1" step="0.1" value="0.8">
+            </div>
+            <div class="control-group">
+                <label>色相: <span id="hueValue">200</span>°</label>
+                <input type="range" id="hueSlider" min="0" max="360" step="10" value="200">
+            </div>
+            <div class="control-group">
+                <label>饱和度: <span id="saturationValue">70</span>%</label>
+                <input type="range" id="saturationSlider" min="0" max="100" step="5" value="70">
+            </div>
+            <div class="control-group">
+                <label>亮度: <span id="lightnessValue">50</span>%</label>
+                <input type="range" id="lightnessSlider" min="10" max="90" step="5" value="50">
+            </div>
+            <div class="control-group">
+                <button class="preset-btn" onclick="setAuroraPreset('gentle')">柔和</button>
+                <button class="preset-btn" onclick="setAuroraPreset('dynamic')">动感</button>
+                <button class="preset-btn" onclick="setAuroraPreset('intense')">强烈</button>
+                <button class="preset-btn" onclick="setAuroraPreset('rainbow')">彩虹</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 主题切换按钮 -->
+    <button class="theme-toggle" id="themeToggle" title="切換主題">
+        <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="2"/>
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="2"/>
+        </svg>
+        <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="2" fill="currentColor"/>
+        </svg>
+    </button>
+    
+
+
+    <!-- 返回顶部按钮 -->
+    <button class="back-to-top" id="backToTop" title="返回頂部">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 4L12 20M12 4L6 10M12 4L18 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    </button>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+    <script src="aurora.js"></script>
+</body>
+</html>
