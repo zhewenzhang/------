@@ -186,7 +186,7 @@ function updateWorldTime() {
     const timeZones = document.querySelectorAll('.time-zone');
     
     if (timeZones.length === 0) {
-        console.warn('未找到時區元素');
+        // 如果沒有時區元素，靜默返回，不輸出警告
         return;
     }
     
@@ -1644,5 +1644,81 @@ function typeWriterEffect(elementId, text, speed = 80, isHTML = false) {
         if (element) {
             element.innerHTML = text;
         }
+    }
+}
+
+// 旋轉文字動畫功能
+class RotatingText {
+    constructor(elementId, texts, interval = 2000) {
+        this.element = document.getElementById(elementId);
+        this.texts = texts;
+        this.interval = interval;
+        this.currentIndex = 0;
+        this.isAnimating = false;
+        
+        if (this.element) {
+            this.start();
+        }
+    }
+    
+    start() {
+        // 設置初始文字
+        this.element.textContent = this.texts[0];
+        this.element.classList.add('active');
+        
+        // 開始循環
+        this.intervalId = setInterval(() => {
+            this.rotateText();
+        }, this.interval);
+    }
+    
+    rotateText() {
+        if (this.isAnimating) return;
+        
+        this.isAnimating = true;
+        
+        // 退出動畫
+        this.element.classList.remove('active');
+        this.element.classList.add('exit');
+        
+        setTimeout(() => {
+            // 更新文字
+            this.currentIndex = (this.currentIndex + 1) % this.texts.length;
+            this.element.textContent = this.texts[this.currentIndex];
+            
+            // 進入動畫
+            this.element.classList.remove('exit');
+            this.element.classList.add('enter');
+            
+            setTimeout(() => {
+                // 激活狀態
+                this.element.classList.remove('enter');
+                this.element.classList.add('active');
+                this.isAnimating = false;
+            }, 50);
+        }, 300);
+    }
+}
+
+// 初始化旋轉文字 - 添加到現有的DOMContentLoaded事件中
+if (typeof window.rotatingTextInitialized === 'undefined') {
+    window.rotatingTextInitialized = true;
+    
+    function initRotatingText() {
+        const element = document.getElementById('rotatingText');
+        if (element) {
+            const rotatingTexts = ['新闻', 'News', '分析', '情報', '观点'];
+            new RotatingText('rotatingText', rotatingTexts, 2000);
+        }
+    }
+    
+    // 等待DOM加載完成後初始化
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(initRotatingText, 500);
+        });
+    } else {
+        // DOM已經加載完成
+        setTimeout(initRotatingText, 500);
     }
 }

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>旋轉文字測試</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a2e;
+            color: white;
+            padding: 50px;
+            text-align: center;
+        }
+        
+        .test-logo {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00d4ff, #ff00ff, #00ff88);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 4s ease-in-out infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            margin: 50px 0;
+        }
+        
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        .logo-fixed {
+            background: linear-gradient(135deg, #00d4ff, #ff00ff, #00ff88);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 4s ease-in-out infinite;
+        }
+        
+        .rotating-text-container {
+            position: relative;
+            display: inline-block;
+            height: 1.2em;
+            overflow: hidden;
+            min-width: 80px;
+        }
+        
+        .rotating-text {
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: linear-gradient(135deg, #00d4ff, #ff00ff, #00ff88);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 4s ease-in-out infinite;
+            transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .rotating-text.exit {
+            transform: translateY(-120%);
+            opacity: 0;
+        }
+        
+        .rotating-text.enter {
+            transform: translateY(100%);
+            opacity: 0;
+        }
+        
+        .rotating-text.active {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .debug-info {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <h1>旋轉文字動畫測試</h1>
+    
+    <div class="test-logo">
+        <span class="logo-fixed">D AI </span>
+        <span class="rotating-text-container">
+            <span class="rotating-text" id="testRotatingText">新闻</span>
+        </span>
+        <span style="margin-left: 10px;">Aurora</span>
+    </div>
+    
+    <div class="debug-info">
+        <h3>調試信息：</h3>
+        <div id="debugLog"></div>
+    </div>
+    
+    <script>
+        // 旋轉文字動畫功能
+        class RotatingText {
+            constructor(elementId, texts, interval = 2000) {
+                this.element = document.getElementById(elementId);
+                this.texts = texts;
+                this.interval = interval;
+                this.currentIndex = 0;
+                this.isAnimating = false;
+                this.debugLog = document.getElementById('debugLog');
+                
+                this.log('🎬 RotatingText 構造函數: ' + JSON.stringify({
+                    elementId,
+                    element: !!this.element,
+                    texts,
+                    interval
+                }));
+                
+                if (this.element) {
+                    this.start();
+                } else {
+                    this.log('❌ RotatingText: 找不到元素 ' + elementId);
+                }
+            }
+            
+            log(message) {
+                console.log(message);
+                if (this.debugLog) {
+                    this.debugLog.innerHTML += '<div>' + message + '</div>';
+                }
+            }
+            
+            start() {
+                this.log('▶️ 開始旋轉文字動畫');
+                // 設置初始文字
+                this.element.textContent = this.texts[0];
+                this.element.classList.add('active');
+                this.log('📝 設置初始文字: ' + this.texts[0]);
+                
+                // 開始循環
+                this.intervalId = setInterval(() => {
+                    this.rotateText();
+                }, this.interval);
+                this.log('⏰ 設置定時器，間隔: ' + this.interval + 'ms');
+            }
+            
+            rotateText() {
+                if (this.isAnimating) {
+                    this.log('⏸️ 動畫進行中，跳過此次旋轉');
+                    return;
+                }
+                
+                this.log('🔄 開始文字旋轉，當前索引: ' + this.currentIndex);
+                this.isAnimating = true;
+                
+                // 退出動畫
+                this.element.classList.remove('active');
+                this.element.classList.add('exit');
+                this.log('⬆️ 添加退出動畫類');
+                
+                setTimeout(() => {
+                    // 更新文字
+                    this.currentIndex = (this.currentIndex + 1) % this.texts.length;
+                    this.element.textContent = this.texts[this.currentIndex];
+                    this.log('📝 更新文字為: ' + this.texts[this.currentIndex]);
+                    
+                    // 進入動畫
+                    this.element.classList.remove('exit');
+                    this.element.classList.add('enter');
+                    this.log('⬇️ 添加進入動畫類');
+                    
+                    setTimeout(() => {
+                        // 激活狀態
+                        this.element.classList.remove('enter');
+                        this.element.classList.add('active');
+                        this.isAnimating = false;
+                        this.log('✅ 動畫完成，文字激活');
+                    }, 50);
+                }, 300);
+            }
+        }
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM 加載完成');
+            setTimeout(() => {
+                const rotatingTexts = ['新闻', 'News', '分析', '情報', '观点'];
+                new RotatingText('testRotatingText', rotatingTexts, 2000);
+            }, 100);
+        });
+    </script>
+</body>
+</html>
