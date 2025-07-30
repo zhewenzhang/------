@@ -2,14 +2,14 @@
 
 // Aurora配置参数
 let auroraConfig = {
-    intensity: 1.0,
-    speed: 1.0,
-    amplitude: 1.0,
-    blend: 0.5,
-    opacity: 0.8,
-    hue: 200,
-    saturation: 70,
-    lightness: 50,
+    intensity: 0.6, // 柔和配色 - 强度降低
+    speed: 3.0, // 用户要求速度为3
+    amplitude: 0.7, // 柔和配色 - 幅度适中
+    blend: 0.3, // 柔和配色 - 混合度降低
+    opacity: 1.0, // 用户要求透明度为1
+    hue: 220, // 柔和配色 - 蓝色系
+    saturation: 40, // 柔和配色 - 饱和度降低
+    lightness: 60, // 用户要求亮度为60%
     colorStops: ['#0a0a0a', '#00d4ff', '#1a1a2e']
 };
 
@@ -48,11 +48,9 @@ function initializeAuroraControls() {
     // 绑定滑块事件
     bindSliderEvents();
     
-    // 初始化控制面板为收起状态（移动端）
-    if (window.innerWidth <= 768) {
-        controls.classList.add('collapsed');
-        toggleBtn.textContent = '展开';
-    }
+    // 默认收起Aurora控制面板（无论设备类型）
+    controls.classList.add('collapsed');
+    toggleBtn.textContent = '展开';
 }
 
 // 绑定滑块控制事件

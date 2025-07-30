@@ -227,6 +227,12 @@ function updateWorldTime() {
 
 // 開始實時世界時間更新
 function startTimeUpdate() {
+    // 檢查是否有時區元素，如果沒有則不啟動時間更新
+    const timeZones = document.querySelectorAll('.time-zone');
+    if (timeZones.length === 0) {
+        return;
+    }
+    
     updateWorldTime(); // 立即更新一次
     timeUpdateInterval = setInterval(updateWorldTime, 1000); // 每秒更新
 }
@@ -746,14 +752,26 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // 確保開關初始狀態為關閉
             autoRefreshToggle.checked = false;
-            console.log('自動刷新開關初始狀態設置為關閉');
+            // 確保全局變量也設置為關閉
+            isAutoRefreshEnabled = false;
+            console.log('自動刷新開關初始狀態設置為關閉，isAutoRefreshEnabled:', isAutoRefreshEnabled);
         } else {
             console.error('未找到自動刷新開關元素 (autoRefreshToggle)');
+            // 即使沒有開關元素，也要確保自動刷新被禁用
+            isAutoRefreshEnabled = false;
+            console.log('沒有自動刷新開關，強制禁用自動刷新');
         }
         
         // 頁面初始化時自動載入新聞
         console.log('頁面初始化完成，開始自動載入新聞');
+        console.log('初始化前的自動刷新狀態 - isAutoRefreshEnabled:', isAutoRefreshEnabled);
+        console.log('初始化前的定時器狀態 - autoRefreshInterval:', autoRefreshInterval);
+        
         checkForUpdates();
+        
+        // 確保初始化後自動刷新仍然是關閉狀態
+        console.log('初始化後的自動刷新狀態 - isAutoRefreshEnabled:', isAutoRefreshEnabled);
+        console.log('初始化後的定時器狀態 - autoRefreshInterval:', autoRefreshInterval);
         
         // 注意：自動刷新默認關閉，需要用戶手動啟用
         // 不會自動啟動定時刷新功能
