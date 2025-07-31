@@ -873,8 +873,8 @@ input:checked + .slider:before {
     padding: 8px 12px;
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    background: var(--input-bg);
-    color: var(--text-primary);
+    background: #ffffff !important;
+    color: #000000 !important;
     font-size: 14px;
     transition: all 0.3s ease;
 }
@@ -884,6 +884,13 @@ input:checked + .slider:before {
     outline: none;
     border-color: var(--accent-color);
     box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+}
+
+/* select下拉选项样式 */
+.setting-item select option {
+    background: #ffffff !important;
+    color: #000000 !important;
+    padding: 8px;
 }
 
 .setting-item input[type="range"] {
@@ -966,6 +973,25 @@ input:checked + .slider:before {
     to {
         transform: translateY(0);
         opacity: 1;
+    }
+}
+
+@keyframes fadeInOut {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.8);
+    }
+    20% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    80% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.8);
     }
 }
 
@@ -1636,19 +1662,19 @@ input:checked + .slider:before {
 }
 
 .dock-navigation .dock-item:hover {
-    transform: scale(1.4) translateY(-8px);
+    transform: scale(1) translateY(0px);
     z-index: 10;
 }
 
 .dock-navigation .dock-item:hover + .dock-item,
 .dock-navigation .dock-item:has(+ .dock-item:hover) {
-    transform: scale(1.2) translateY(-4px);
+    transform: scale(1) translateY(0px);
     z-index: 5;
 }
 
 .dock-navigation .dock-item:hover + .dock-item + .dock-item,
 .dock-navigation .dock-item:has(+ .dock-item + .dock-item:hover) {
-    transform: scale(1.1) translateY(-2px);
+    transform: scale(1) translateY(0px);
     z-index: 3;
 }
 

@@ -918,8 +918,8 @@ function setupDockNavigation() {
                 const maxDistance = 200; // Vue Bits默認距離
                 
                 if (distance < maxDistance) {
-                    const scale = 1 + (1 - distance / maxDistance) * 0.4; // 最大放大1.4倍
-                    const translateY = -(1 - distance / maxDistance) * 8; // 最大上移8px
+                    const scale = 1 + (1 - distance / maxDistance) * 0; // 禁用放大效果
+                    const translateY = -(1 - distance / maxDistance) * 0; // 禁用上移效果
                     item.style.transform = `scale(${scale}) translateY(${translateY}px)`;
                     item.style.zIndex = Math.round(10 - distance / 20);
                 } else {
@@ -1018,8 +1018,9 @@ function showSettingsModal() {
                     </select>
                 </div>
                 <div class="setting-item">
-                    <label>Aurora效果</label>
+                    <label>Aurora效果強度</label>
                     <input type="range" id="auroraIntensity" min="0" max="100" value="50">
+                    <span id="auroraIntensityValue">50</span>
                 </div>
                 <div class="setting-item">
                     <label>通知設置</label>
@@ -1035,6 +1036,24 @@ function showSettingsModal() {
     `;
     
     document.body.appendChild(modal);
+    
+    // 載入保存的設置
+    setTimeout(() => {
+        loadSavedSettings();
+        
+        // 設置Aurora強度滑塊的實時更新
+        const auroraIntensity = document.getElementById('auroraIntensity');
+        const auroraIntensityValue = document.getElementById('auroraIntensityValue');
+        
+        if (auroraIntensity && auroraIntensityValue) {
+            auroraIntensity.addEventListener('input', function() {
+                auroraIntensityValue.textContent = this.value;
+            });
+            
+            // 初始化顯示值
+            auroraIntensityValue.textContent = auroraIntensity.value;
+        }
+    }, 100);
 }
 
 // 保存設置
@@ -1049,8 +1068,99 @@ function saveSettings() {
         enableNotifications
     });
     
-    // 這裡可以添加實際的設置保存邏輯
-    alert('設置已保存！');
+    try {
+        // 保存設置到localStorage
+        const settings = {
+            refreshInterval: refreshInterval || '60',
+            auroraIntensity: auroraIntensity || '50',
+            enableNotifications: enableNotifications || false,
+            savedAt: new Date().toISOString()
+        };
+        
+        localStorage.setItem('newsAppSettings', JSON.stringify(settings));
+        console.log('設置已保存到localStorage:', settings);
+        
+        // 應用Aurora強度設置
+        if (typeof window.auroraConfig !== 'undefined' && auroraIntensity) {
+            window.auroraConfig.intensity = parseFloat(auroraIntensity) / 100;
+            if (typeof updateAuroraEffect === 'function') {
+                updateAuroraEffect();
+                console.log('Aurora強度已更新為:', window.auroraConfig.intensity);
+            }
+        }
+        
+        // 顯示成功提示
+        showSettingsSavedFeedback();
+        
+    } catch (error) {
+        console.error('保存設置時發生錯誤:', error);
+        alert('保存設置失敗，請重試！');
+    }
+}
+
+// 顯示設置保存成功的反饋
+function showSettingsSavedFeedback() {
+    // 創建臨時提示
+    const feedback = document.createElement('div');
+    feedback.className = 'settings-saved-feedback';
+    feedback.textContent = '設置已保存！';
+    feedback.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 212, 255, 0.9);
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        z-index: 10001;
+        animation: fadeInOut 2s ease-in-out;
+        box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+    `;
+    
+    document.body.appendChild(feedback);
+    
+    // 2秒後移除
+    setTimeout(() => {
+        if (feedback.parentNode) {
+            feedback.parentNode.removeChild(feedback);
+        }
+    }, 2000);
+}
+
+// 載入保存的設置
+function loadSavedSettings() {
+    try {
+        const savedSettings = localStorage.getItem('newsAppSettings');
+        if (savedSettings) {
+            const settings = JSON.parse(savedSettings);
+            console.log('載入保存的設置:', settings);
+            
+            // 應用設置到表單元素
+            const refreshInterval = document.getElementById('refreshInterval');
+            const auroraIntensity = document.getElementById('auroraIntensity');
+            const enableNotifications = document.getElementById('enableNotifications');
+            
+            if (refreshInterval && settings.refreshInterval) {
+                refreshInterval.value = settings.refreshInterval;
+            }
+            
+            if (auroraIntensity && settings.auroraIntensity) {
+                auroraIntensity.value = settings.auroraIntensity;
+            }
+            
+            if (enableNotifications && typeof settings.enableNotifications === 'boolean') {
+                enableNotifications.checked = settings.enableNotifications;
+            }
+            
+            return settings;
+        }
+    } catch (error) {
+        console.error('載入設置時發生錯誤:', error);
+    }
+    return null;
 }
 
 // AI 分析功能相关变量
