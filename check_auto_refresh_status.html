@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自動刷新狀態檢查</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .status-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .status-item {
+            margin: 15px 0;
+            padding: 10px;
+            border-left: 4px solid #007acc;
+            background: #f8f9fa;
+        }
+        .status-label {
+            font-weight: bold;
+            color: #333;
+        }
+        .status-value {
+            color: #666;
+            margin-left: 10px;
+        }
+        .refresh-btn {
+            background: #007acc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        .refresh-btn:hover {
+            background: #005a9e;
+        }
+        .log-area {
+            background: #000;
+            color: #0f0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="status-container">
+        <h1>🔄 自動刷新狀態檢查</h1>
+        
+        <div class="status-item">
+            <span class="status-label">自動刷新開關狀態:</span>
+            <span class="status-value" id="toggleStatus">檢查中...</span>
+        </div>
+        
+        <div class="status-item">
+            <span class="status-label">isAutoRefreshEnabled 變量:</span>
+            <span class="status-value" id="enabledStatus">檢查中...</span>
+        </div>
+        
+        <div class="status-item">
+            <span class="status-label">定時器狀態:</span>
+            <span class="status-value" id="timerStatus">檢查中...</span>
+        </div>
+        
+        <div class="status-item">
+            <span class="status-label">最後更新時間:</span>
+            <span class="status-value" id="lastUpdateStatus">檢查中...</span>
+        </div>
+        
+        <div class="status-item">
+            <span class="status-label">頁面可見性:</span>
+            <span class="status-value" id="visibilityStatus">檢查中...</span>
+        </div>
+        
+        <button class="refresh-btn" onclick="checkStatus()">🔄 重新檢查</button>
+        <button class="refresh-btn" onclick="openMainPage()">🏠 打開主頁面</button>
+        <button class="refresh-btn" onclick="toggleAutoRefresh()">⚡ 切換自動刷新</button>
+        <button class="refresh-btn" onclick="clearLog()">🗑️ 清除日誌</button>
+        
+        <div class="log-area" id="logArea"></div>
+    </div>
+    
+    <script>
+        function log(message) {
+            const logArea = document.getElementById('logArea');
+            const timestamp = new Date().toLocaleTimeString();
+            logArea.innerHTML += `[${timestamp}] ${message}<br>`;
+            logArea.scrollTop = logArea.scrollHeight;
+        }
+        
+        function checkStatus() {
+            log('開始檢查自動刷新狀態...');
+            
+            // 嘗試通過iframe或新窗口檢查主頁面狀態
+            try {
+                // 檢查是否在主頁面中
+                if (window.location.pathname.includes('index.html') || window.location.pathname === '/') {
+                    log('當前在主頁面，直接檢查狀態');
+                    checkMainPageStatus();
+                } else {
+                    log('當前在狀態檢查頁面，需要檢查主頁面狀態');
+                    checkViaMainPage();
+                }
+            } catch (error) {
+                log(`檢查狀態時發生錯誤: ${error.message}`);
+            }
+        }
+        
+        function checkMainPageStatus() {
+            // 檢查開關狀態
+            const toggle = document.getElementById('autoRefreshToggle');
+            const toggleStatus = toggle ? toggle.checked : '開關元素不存在';
+            document.getElementById('toggleStatus').textContent = toggleStatus;
+            log(`開關狀態: ${toggleStatus}`);
+            
+            // 檢查全局變量
+            const isEnabled = typeof window.isAutoRefreshEnabled !== 'undefined' ? 
+                window.isAutoRefreshEnabled : '變量不存在';
+            document.getElementById('enabledStatus').textContent = isEnabled;
+            log(`isAutoRefreshEnabled: ${isEnabled}`);
+            
+            // 檢查定時器
+            const timerStatus = typeof window.autoRefreshInterval !== 'undefined' ? 
+                (window.autoRefreshInterval ? `運行中 (ID: ${window.autoRefreshInterval})` : '已停止') : 
+                '變量不存在';
+            document.getElementById('timerStatus').textContent = timerStatus;
+            log(`定時器狀態: ${timerStatus}`);
+            
+            // 檢查最後更新時間
+            const lastUpdate = typeof window.lastUpdateTime !== 'undefined' ? 
+                (window.lastUpdateTime ? new Date(window.lastUpdateTime).toLocaleString() : '未設置') : 
+                '變量不存在';
+            document.getElementById('lastUpdateStatus').textContent = lastUpdate;
+            log(`最後更新時間: ${lastUpdate}`);
+            
+            // 檢查頁面可見性
+            const visibility = document.hidden ? '隱藏' : '可見';
+            document.getElementById('visibilityStatus').textContent = visibility;
+            log(`頁面可見性: ${visibility}`);
+            
+            log('狀態檢查完成!');
+        }
+        
+        function checkViaMainPage() {
+            // 創建隱藏的iframe來檢查主頁面狀態
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.src = '/index.html';
+            
+            iframe.onload = function() {
+                try {
+                    const iframeWindow = iframe.contentWindow;
+                    
+                    // 檢查開關狀態
+                    const toggle = iframeWindow.document.getElementById('autoRefreshToggle');
+                    const toggleStatus = toggle ? toggle.checked : '開關元素不存在';
+                    document.getElementById('toggleStatus').textContent = toggleStatus;
+                    log(`開關狀態: ${toggleStatus}`);
+                    
+                    // 檢查全局變量
+                    const isEnabled = typeof iframeWindow.isAutoRefreshEnabled !== 'undefined' ? 
+                        iframeWindow.isAutoRefreshEnabled : '變量不存在';
+                    document.getElementById('enabledStatus').textContent = isEnabled;
+                    log(`isAutoRefreshEnabled: ${isEnabled}`);
+                    
+                    // 檢查定時器
+                    const timerStatus = typeof iframeWindow.autoRefreshInterval !== 'undefined' ? 
+                        (iframeWindow.autoRefreshInterval ? `運行中 (ID: ${iframeWindow.autoRefreshInterval})` : '已停止') : 
+                        '變量不存在';
+                    document.getElementById('timerStatus').textContent = timerStatus;
+                    log(`定時器狀態: ${timerStatus}`);
+                    
+                    // 檢查最後更新時間
+                    const lastUpdate = typeof iframeWindow.lastUpdateTime !== 'undefined' ? 
+                        (iframeWindow.lastUpdateTime ? new Date(iframeWindow.lastUpdateTime).toLocaleString() : '未設置') : 
+                        '變量不存在';
+                    document.getElementById('lastUpdateStatus').textContent = lastUpdate;
+                    log(`最後更新時間: ${lastUpdate}`);
+                    
+                    log('通過iframe檢查完成!');
+                    
+                } catch (error) {
+                    log(`無法訪問iframe內容，可能是跨域限制: ${error.message}`);
+                    showManualInstructions();
+                } finally {
+                    document.body.removeChild(iframe);
+                }
+            };
+            
+            iframe.onerror = function() {
+                log('無法載入主頁面iframe');
+                showManualInstructions();
+                document.body.removeChild(iframe);
+            };
+            
+            document.body.appendChild(iframe);
+            
+            // 檢查當前頁面可見性
+            const visibility = document.hidden ? '隱藏' : '可見';
+            document.getElementById('visibilityStatus').textContent = visibility;
+            log(`當前頁面可見性: ${visibility}`);
+        }
+        
+        function showManualInstructions() {
+            document.getElementById('toggleStatus').textContent = '需要手動檢查';
+            document.getElementById('enabledStatus').textContent = '需要手動檢查';
+            document.getElementById('timerStatus').textContent = '需要手動檢查';
+            document.getElementById('lastUpdateStatus').textContent = '需要手動檢查';
+            
+            log('=== 手動檢查指南 ===');
+            log('1. 打開主頁面 (index.html)');
+            log('2. 按F12打開開發者工具');
+            log('3. 在Console中輸入以下命令:');
+            log('   console.log("自動刷新狀態:", isAutoRefreshEnabled);');
+            log('   console.log("定時器ID:", autoRefreshInterval);');
+            log('   console.log("開關狀態:", document.getElementById("autoRefreshToggle")?.checked);');
+            log('   console.log("最後更新:", lastUpdateTime ? new Date(lastUpdateTime) : "未設置");');
+        }
+        
+        function toggleAutoRefresh() {
+            if (typeof window.toggleAutoRefresh === 'function') {
+                const currentState = window.isAutoRefreshEnabled;
+                window.toggleAutoRefresh(!currentState);
+                log(`手動切換自動刷新: ${currentState} -> ${!currentState}`);
+                setTimeout(checkStatus, 500);
+            } else {
+                log('錯誤: toggleAutoRefresh 函數不存在');
+            }
+        }
+        
+        function openMainPage() {
+            log('正在打開主頁面...');
+            window.open('/index.html', '_blank');
+        }
+        
+        function clearLog() {
+            document.getElementById('logArea').innerHTML = '';
+        }
+        
+        // 頁面載入時自動檢查
+        window.addEventListener('load', () => {
+            log('頁面載入完成，開始檢查狀態...');
+            setTimeout(checkStatus, 1000);
+        });
+        
+        // 監聽頁面可見性變化
+        document.addEventListener('visibilitychange', () => {
+            log(`頁面可見性變化: ${document.hidden ? '隱藏' : '顯示'}`);
+            checkStatus();
+        });
+    </script>
+</body>
+</html>
