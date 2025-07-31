@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dock導航測試</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        .log-container {
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        .test-button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Dock導航功能測試</h1>
+        <p>這個頁面用於測試dock導航的點擊功能</p>
+        
+        <div>
+            <button class="test-button" onclick="testDockClick('home')">測試首頁導航</button>
+            <button class="test-button" onclick="testDockClick('summary')">測試總結導航</button>
+            <button class="test-button" onclick="testDockClick('user')">測試用戶導航</button>
+            <button class="test-button" onclick="testDockClick('settings')">測試設置導航</button>
+            <button class="test-button" onclick="clearLog()">清除日誌</button>
+        </div>
+        
+        <div class="log-container" id="logContainer">
+            <div>測試日誌將顯示在這裡...</div>
+        </div>
+    </div>
+
+    <!-- Dock導航 -->
+    <div class="dock-navigation">
+        <div class="dock-container" id="dockContainer">
+            <div class="dock-panel">
+                <div class="dock-item" data-page="home" title="首頁">
+                    <div class="dock-icon">
+                        <img src="icons/home.svg" alt="首頁" class="dock-icon-svg">
+                    </div>
+                    <div class="dock-label">首頁</div>
+                </div>
+                <div class="dock-item" data-page="summary" title="總結">
+                    <div class="dock-icon">
+                        <img src="icons/calendar.svg" alt="總結" class="dock-icon-svg">
+                    </div>
+                    <div class="dock-label">總結</div>
+                </div>
+                <div class="dock-item" data-page="user" title="用戶">
+                    <div class="dock-icon">
+                        <img src="icons/user.svg" alt="用戶" class="dock-icon-svg">
+                    </div>
+                    <div class="dock-label">用戶</div>
+                </div>
+                <div class="dock-item" data-page="settings" title="設置">
+                    <div class="dock-icon">
+                        <img src="icons/settings.svg" alt="設置" class="dock-icon-svg">
+                    </div>
+                    <div class="dock-label">設置</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let logContainer = document.getElementById('logContainer');
+        
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+        
+        function clearLog() {
+            logContainer.innerHTML = '<div>日誌已清除...</div>';
+        }
+        
+        function testDockClick(page) {
+            log(`測試點擊dock項目: ${page}`);
+            const dockItem = document.querySelector(`[data-page="${page}"]`);
+            if (dockItem) {
+                log(`找到dock項目: ${page}`);
+                dockItem.click();
+            } else {
+                log(`未找到dock項目: ${page}`);
+            }
+        }
+        
+        // 初始化Dock導航
+        function initializeDockNavigation() {
+            const dockItems = document.querySelectorAll('.dock-item');
+            log(`找到dock項目數量: ${dockItems.length}`);
+            
+            dockItems.forEach((item, index) => {
+                const page = item.getAttribute('data-page');
+                log(`綁定dock項目 ${index}: ${page}`);
+                
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const clickedPage = this.getAttribute('data-page');
+                    log(`點擊了dock項目: ${clickedPage}`);
+                    handleDockNavigation(clickedPage);
+                });
+                
+                // 添加鼠標懸停效果
+                item.addEventListener('mouseenter', function() {
+                    this.style.transform = 'scale(1.1) translateY(-5px)';
+                    log(`鼠標懸停: ${page}`);
+                });
+                
+                item.addEventListener('mouseleave', function() {
+                    this.style.transform = 'scale(1) translateY(0px)';
+                });
+            });
+        }
+        
+        // 處理Dock導航點擊
+        function handleDockNavigation(page) {
+            log(`處理導航到頁面: ${page}`);
+            
+            switch(page) {
+                case 'home':
+                    log('準備跳轉到首頁: index.html');
+                    // 在測試環境中不實際跳轉，只記錄
+                    log('跳轉功能正常！');
+                    break;
+                case 'summary':
+                    log('跳轉到總結頁面: daily-summary.html');
+                    log('跳轉功能正常！');
+                    break;
+                case 'user':
+                    log('用戶頁面功能待實現');
+                    break;
+                case 'settings':
+                    log('設置頁面功能待實現');
+                    break;
+                default:
+                    log(`未知的頁面: ${page}`);
+                    break;
+            }
+        }
+        
+        // 頁面載入完成後初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            log('頁面載入完成，開始初始化dock導航...');
+            initializeDockNavigation();
+            log('Dock導航初始化完成！');
+        });
+    </script>
+</body>
+</html>
