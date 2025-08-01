@@ -91,7 +91,7 @@ async function fetchAndDisplayNews() {
         // 首先檢查數據庫中最新的rtime
         displayLog('正在檢查數據庫中最新的數據時間...');
         const { data: latestData, error: latestError } = await supabase
-            .from('n8n_CLS_news')
+            .from(config.tableName)
             .select('rtime')
             .not('rtime', 'is', null)
             .order('rtime', { ascending: false })
@@ -109,7 +109,7 @@ async function fetchAndDisplayNews() {
         // 獲取最新的20條新聞數據 - 從 n8n_CLS_news 表獲取新聞數據
         displayLog('正在獲取最新的20條新聞數據...');
         const { data, error } = await supabase
-            .from('n8n_CLS_news')
+            .from(config.tableName)
             .select('id, title, content, link, rtime, tag')
             .not('rtime', 'is', null)  // 過濾掉rtime為null的記錄
             .order('rtime', { ascending: false })  // 明確指定按rtime降序排列

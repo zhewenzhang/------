@@ -4,7 +4,7 @@
 const config = window.SUPABASE_CONFIG || {
     url: 'https://mayplvpysdjpnytpevnc.supabase.co',
     anonKey: 'YOUR_ANON_KEY_HERE',
-    tableName: 'n8n_CLS_news'
+    tableName: 'n8n_cls_news_geminiai'
 };
 
 // 初始化 Supabase 客戶端
@@ -325,7 +325,6 @@ function createNewsItemHTML(news) {
         <div class="news-item" data-news-id="${newsId}">
             <h2>${title}</h2>
             <div class="news-meta">
-                <span>財聯社</span>
                 <span>${dateTime}</span>
                 ${tagsHTML}
             </div>
