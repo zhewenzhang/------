@@ -22,10 +22,50 @@ try {
 
 // 全局變量
 let newsData = [];
+let filteredNewsData = []; // 篩選後的新聞數據
+let activeFilters = new Set(); // 活躍的篩選器
 let lastUpdateTime = null;
 let autoRefreshInterval;
 let timeUpdateInterval;
 let isAutoRefreshEnabled = false;
+
+// 性能監控變量
+let performanceMetrics = {
+    totalLoadTime: 0,
+    databaseQueryTime: 0,
+    renderTime: 0,
+    animationTime: 0,
+    loadCount: 0
+};
+
+// 緩存機制
+let newsCache = {
+    data: null,
+    timestamp: null,
+    ttl: 30000 // 緩存30秒
+};
+
+// 檢查緩存是否有效
+function isCacheValid() {
+    if (!newsCache.data || !newsCache.timestamp) {
+        return false;
+    }
+    return (Date.now() - newsCache.timestamp) < newsCache.ttl;
+}
+
+// 更新緩存
+function updateCache(data) {
+    newsCache.data = data;
+    newsCache.timestamp = Date.now();
+    console.log('📦 緩存已更新，有效期30秒');
+}
+
+// 清除緩存
+function clearCache() {
+    newsCache.data = null;
+    newsCache.timestamp = null;
+    console.log('🗑️ 緩存已清除');
+}
 
 // 模擬新聞數據
 const mockNewsData = [
@@ -355,6 +395,9 @@ function showLoadingNews() {
 
 // 顯示新聞列表
 function displayNewsList(newsList) {
+    const renderStartTime = performance.now();
+    console.time('🖼️ 新聞列表渲染總時間');
+    
     console.log('🔍 displayNewsList called with:', { 
         newsListLength: newsList?.length || 0, 
         firstNewsId: newsList?.[0]?.id || 'none' 
@@ -362,18 +405,20 @@ function displayNewsList(newsList) {
     
     const newsListElement = document.getElementById('newsList');
     if (!newsListElement) {
-        console.error('找不到新聞列表容器');
+        console.error('❌ 找不到新聞列表容器');
         return;
     }
     
     if (!newsList || newsList.length === 0) {
         newsListElement.innerHTML = '<div class="error">暫無新聞數據</div>';
+        console.log('⚠️ 無新聞數據，顯示錯誤信息');
         return;
     }
     
-    console.log(`顯示 ${newsList.length} 條新聞`);
+    console.log(`📰 準備顯示 ${newsList.length} 條新聞`);
     
     // 确保每个新闻项目都有id
+    console.time('🔧 數據預處理');
     const newsWithIds = newsList.map(news => {
         if (!news.id) {
             news.id = Math.floor(Math.random() * 10000);
@@ -381,16 +426,288 @@ function displayNewsList(newsList) {
         }
         return news;
     });
+    console.timeEnd('🔧 數據預處理');
     
+    // HTML生成階段
+    console.time('🏗️ HTML生成');
     const newsHTML = newsWithIds.map(news => createNewsItemHTML(news)).join('');
-    newsListElement.innerHTML = newsHTML;
+    console.timeEnd('🏗️ HTML生成');
     
-    // 打印生成的HTML结构
-    console.log('🔍 生成的HTML结构:', newsListElement.innerHTML.substring(0, 200) + '...');
+    // DOM更新階段
+    console.time('🔄 DOM更新');
+    newsListElement.innerHTML = newsHTML;
+    console.timeEnd('🔄 DOM更新');
+    
+    // 打印生成的HTML结构（僅在開發模式）
+    if (window.location.hostname === 'localhost') {
+        console.log('🔍 生成的HTML結構預覽:', newsListElement.innerHTML.substring(0, 200) + '...');
+    }
     
     // 更新最後更新時間
     lastUpdateTime = new Date();
-    console.log('新聞列表顯示完成，最後更新時間:', lastUpdateTime);
+    console.log('✅ 新聞列表顯示完成，最後更新時間:', lastUpdateTime.toLocaleString());
+    
+    // 更新篩選器
+    console.time('🏷️ 篩選器更新');
+    updateNewsFilter();
+    console.timeEnd('🏷️ 篩選器更新');
+    
+    const renderEndTime = performance.now();
+    const totalRenderTime = renderEndTime - renderStartTime;
+    console.timeEnd('🖼️ 新聞列表渲染總時間');
+    console.log(`⚡ 渲染性能統計: ${totalRenderTime.toFixed(2)}ms (${newsList.length}條新聞)`);
+    console.log(`📊 平均每條新聞渲染時間: ${(totalRenderTime / newsList.length).toFixed(2)}ms`);
+    
+    // 更新性能指標
+    performanceMetrics.renderTime = totalRenderTime;
+    performanceMetrics.loadCount++;
+}
+
+// 性能分析和優化建議
+function analyzePerformance() {
+    console.log('\n🔍 === 性能分析報告 ===');
+    console.log(`📊 總加載次數: ${performanceMetrics.loadCount}`);
+    console.log(`⏱️ 最近渲染時間: ${performanceMetrics.renderTime.toFixed(2)}ms`);
+    
+    const suggestions = [];
+    
+    // 渲染性能分析
+    if (performanceMetrics.renderTime > 100) {
+        suggestions.push('🐌 渲染時間較長，建議減少DOM操作或使用虛擬滾動');
+    } else if (performanceMetrics.renderTime < 50) {
+        suggestions.push('⚡ 渲染性能良好！');
+    }
+    
+    // 數據庫查詢分析
+    if (performanceMetrics.databaseQueryTime > 2000) {
+        suggestions.push('🐌 數據庫查詢較慢，建議檢查網絡連接或優化查詢');
+    }
+    
+    // 總體性能評估
+    const totalTime = performanceMetrics.totalLoadTime;
+    if (totalTime > 3000) {
+        suggestions.push('🚨 總加載時間過長，建議啟用緩存或減少數據量');
+    } else if (totalTime < 1000) {
+        suggestions.push('🚀 加載速度優秀！');
+    }
+    
+    console.log('\n💡 優化建議:');
+    suggestions.forEach((suggestion, index) => {
+        console.log(`${index + 1}. ${suggestion}`);
+    });
+    
+    console.log('\n📦 緩存狀態:');
+    if (newsCache.data) {
+        const cacheAge = (Date.now() - newsCache.timestamp) / 1000;
+        console.log(`• 緩存數據: ${newsCache.data.length}條新聞`);
+        console.log(`• 緩存年齡: ${cacheAge.toFixed(1)}秒`);
+        console.log(`• 緩存狀態: ${isCacheValid() ? '有效' : '已過期'}`);
+    } else {
+        console.log('• 緩存狀態: 無緩存數據');
+    }
+    
+    console.log('\n🔧 可能的性能瓶頸:');
+    console.log('• 網絡延遲: 檢查Supabase連接速度');
+    console.log('• DOM渲染: 減少複雜的HTML結構');
+    console.log('• 動畫效果: 考慮禁用非必要動畫');
+    console.log('• 數據量: 考慮分頁加載或懶加載');
+    console.log('• 緩存策略: 30秒緩存可減少重複查詢');
+    
+    return suggestions;
+}
+
+// 提取新聞來源標籤
+function extractNewsSources(newsList) {
+    const sources = new Map();
+    
+    newsList.forEach(news => {
+        if (news.tag) {
+            // 處理多個標籤的情況
+            let tags = [];
+            
+            // 移除開頭的#符號
+            let cleanString = news.tag.replace(/^#+/, '');
+            
+            // 先按##分離
+            let parts = cleanString.split('##');
+            
+            // 對每個部分再按單個#分離
+            parts.forEach(part => {
+                if (part.includes('#')) {
+                    tags.push(...part.split('#').filter(tag => tag.trim()));
+                } else {
+                    if (part.trim()) tags.push(part.trim());
+                }
+            });
+            
+            // 統計每個標籤的出現次數
+            tags.forEach(tag => {
+                const trimmedTag = tag.trim();
+                if (trimmedTag) {
+                    sources.set(trimmedTag, (sources.get(trimmedTag) || 0) + 1);
+                }
+            });
+        }
+    });
+    
+    return sources;
+}
+
+// 更新新聞篩選器
+function updateNewsFilter() {
+    const filterTagsElement = document.getElementById('filterTags');
+    const filterCountElement = document.getElementById('filterCount');
+    
+    if (!filterTagsElement || !filterCountElement) {
+        console.error('找不到篩選器元素');
+        return;
+    }
+    
+    // 提取所有新聞來源
+    const sources = extractNewsSources(newsData);
+    
+    // 生成篩選標籤HTML
+    const filterTagsHTML = Array.from(sources.entries())
+        .sort((a, b) => b[1] - a[1]) // 按出現次數排序
+        .map(([source, count]) => {
+            const isActive = activeFilters.has(source);
+            return `
+                <div class="filter-tag ${isActive ? 'active' : ''}" data-source="${source}">
+                    <span>${source}</span>
+                    <span class="filter-tag-count">${count}</span>
+                </div>
+            `;
+        })
+        .join('');
+    
+    filterTagsElement.innerHTML = filterTagsHTML;
+    
+    // 更新篩選計數
+    updateFilterCount();
+    
+    // 綁定篩選標籤點擊事件
+    bindFilterTagEvents();
+}
+
+// 綁定篩選標籤事件
+function bindFilterTagEvents() {
+    const filterTags = document.querySelectorAll('.filter-tag');
+    
+    filterTags.forEach(tag => {
+        tag.addEventListener('click', () => {
+            const source = tag.dataset.source;
+            
+            if (activeFilters.has(source)) {
+                // 移除篩選
+                activeFilters.delete(source);
+                tag.classList.remove('active');
+            } else {
+                // 添加篩選
+                activeFilters.add(source);
+                tag.classList.add('active');
+            }
+            
+            // 應用篩選
+            applyNewsFilter();
+            updateFilterCount();
+        });
+    });
+}
+
+// 應用新聞篩選
+function applyNewsFilter() {
+    if (activeFilters.size === 0) {
+        // 沒有篩選條件，顯示所有新聞
+        filteredNewsData = [...newsData];
+    } else {
+        // 根據篩選條件過濾新聞
+        filteredNewsData = newsData.filter(news => {
+            if (!news.tag) return false;
+            
+            // 提取新聞的所有標籤
+            let tags = [];
+            let cleanString = news.tag.replace(/^#+/, '');
+            let parts = cleanString.split('##');
+            
+            parts.forEach(part => {
+                if (part.includes('#')) {
+                    tags.push(...part.split('#').filter(tag => tag.trim()));
+                } else {
+                    if (part.trim()) tags.push(part.trim());
+                }
+            });
+            
+            // 檢查是否包含任何活躍的篩選標籤
+            return tags.some(tag => activeFilters.has(tag.trim()));
+        });
+    }
+    
+    // 重新顯示篩選後的新聞
+    displayFilteredNews();
+}
+
+// 顯示篩選後的新聞
+function displayFilteredNews() {
+    const newsListElement = document.getElementById('newsList');
+    if (!newsListElement) {
+        console.error('找不到新聞列表容器');
+        return;
+    }
+    
+    if (filteredNewsData.length === 0) {
+        if (activeFilters.size > 0) {
+            newsListElement.innerHTML = '<div class="error">沒有符合篩選條件的新聞</div>';
+        } else {
+            newsListElement.innerHTML = '<div class="error">暫無新聞數據</div>';
+        }
+        return;
+    }
+    
+    const newsHTML = filteredNewsData.map(news => createNewsItemHTML(news)).join('');
+    newsListElement.innerHTML = newsHTML;
+    
+    console.log(`顯示篩選後的新聞: ${filteredNewsData.length} 條`);
+}
+
+// 更新篩選計數
+function updateFilterCount() {
+    const filterCountElement = document.getElementById('filterCount');
+    if (!filterCountElement) return;
+    
+    if (activeFilters.size === 0) {
+        filterCountElement.textContent = `顯示全部 (${newsData.length})`;
+    } else {
+        const activeFiltersArray = Array.from(activeFilters);
+        const filteredCount = filteredNewsData.length;
+        filterCountElement.textContent = `已篩選: ${activeFiltersArray.join(', ')} (${filteredCount})`;
+    }
+}
+
+// 清除所有篩選
+function clearAllFilters() {
+    activeFilters.clear();
+    
+    // 移除所有活躍狀態
+    const filterTags = document.querySelectorAll('.filter-tag');
+    filterTags.forEach(tag => tag.classList.remove('active'));
+    
+    // 重新應用篩選（顯示所有新聞）
+    applyNewsFilter();
+    updateFilterCount();
+    
+    console.log('已清除所有篩選條件');
+}
+
+// 設置新聞篩選器事件監聽
+function setupNewsFilterEvents() {
+    // 綁定清除篩選按鈕事件
+    const clearFiltersBtn = document.getElementById('clearFilters');
+    if (clearFiltersBtn) {
+        clearFiltersBtn.addEventListener('click', clearAllFilters);
+        console.log('清除篩選按鈕事件監聽器已設置');
+    } else {
+        console.warn('找不到清除篩選按鈕元素');
+    }
 }
 
 // 撕紙動畫效果
@@ -446,8 +763,21 @@ function playTearAnimation() {
 
 // 從 Supabase 獲取新聞數據
 async function fetchNewsFromSupabase() {
+    const startTime = performance.now();
+    console.time('📊 Supabase數據獲取總時間');
+    
+    // 檢查緩存
+    if (isCacheValid()) {
+        console.log('📦 使用緩存數據，跳過數據庫查詢');
+        const cacheAge = (Date.now() - newsCache.timestamp) / 1000;
+        console.log(`⏰ 緩存年齡: ${cacheAge.toFixed(1)}秒`);
+        performanceMetrics.databaseQueryTime = 0; // 使用緩存時查詢時間為0
+        console.timeEnd('📊 Supabase數據獲取總時間');
+        return newsCache.data;
+    }
+    
     try {
-        console.log('開始獲取 Supabase 數據...');
+        console.log('🚀 開始獲取 Supabase 數據...');
         console.log('Supabase 客戶端狀態:', !!supabase);
         console.log('配置信息:', {
             url: config.url,
@@ -459,25 +789,10 @@ async function fetchNewsFromSupabase() {
             throw new Error('Supabase 未初始化');
         }
         
-        // 首先檢查數據庫中最新的rtime
-        console.log('正在檢查數據庫中最新的數據時間...');
-        const { data: latestData, error: latestError } = await supabase
-            .from(config.tableName)
-            .select('rtime')
-            .not('rtime', 'is', null)
-            .order('rtime', { ascending: false })
-            .limit(1);
-
-        if (latestError) {
-            console.log(`檢查最新數據時發生錯誤: ${latestError.message}`);
-        } else if (latestData && latestData.length > 0) {
-            console.log(`數據庫中最新的rtime: ${latestData[0].rtime}`);
-        } else {
-            console.log('數據庫中沒有找到任何數據');
-        }
+        // 優化：直接獲取最新的20條新聞數據，移除不必要的預檢查查詢
+        console.log('📡 正在獲取最新的20條新聞數據...');
+        console.time('🔍 數據庫查詢時間');
         
-        // 獲取最新的20條新聞數據
-        console.log('正在獲取最新的20條新聞數據...');
         const { data, error } = await supabase
             .from(config.tableName)
             .select('id, title, content, link, rtime, tag, time, timestamp, created_at, mood, relation, "analyze"')
@@ -485,37 +800,58 @@ async function fetchNewsFromSupabase() {
             .order('rtime', { ascending: false })
             .limit(20);
         
+        console.timeEnd('🔍 數據庫查詢時間');
+        
         if (error) {
-            console.error('Supabase 查詢錯誤:', error);
+            console.error('❌ Supabase 查詢錯誤:', error);
             throw error;
         }
         
-        console.log('成功獲取數據:', data?.length || 0, '條新聞');
+        const endTime = performance.now();
+        const totalTime = endTime - startTime;
+        
+        console.log(`✅ 成功獲取數據: ${data?.length || 0} 條新聞`);
+        console.log(`⚡ 總耗時: ${totalTime.toFixed(2)}ms`);
+        
+        // 記錄數據庫查詢性能
+        performanceMetrics.databaseQueryTime = totalTime;
+        
         if (data && data.length > 0) {
-            console.log('最新新聞時間:', data[0].rtime);
-            console.log('第一條新聞標題:', data[0].title);
+            console.log('📅 最新新聞時間:', data[0].rtime);
+            console.log('📰 第一條新聞標題:', data[0].title);
+        }
+        
+        console.timeEnd('📊 Supabase數據獲取總時間');
+        
+        // 更新緩存
+        if (data && data.length > 0) {
+            updateCache(data);
         }
         
         return data || [];
     } catch (error) {
-        console.error('獲取 Supabase 數據失敗:', error);
+        console.timeEnd('📊 Supabase數據獲取總時間');
+        console.error('❌ 獲取 Supabase 數據失敗:', error);
         return null;
     }
 }
 
 // 檢查數據更新
 async function checkForUpdates() {
-    console.log('=== 開始檢查更新 ===');
-    console.log('觸發原因 - 自動刷新狀態:', isAutoRefreshEnabled);
-    console.log('觸發原因 - 定時器ID:', autoRefreshInterval);
-    console.log('觸發時間:', new Date().toLocaleString());
+    const updateStartTime = performance.now();
+    console.time('🔄 完整更新流程時間');
     
+    console.log('🔄 === 開始檢查更新 ===');
+    console.log('📊 觸發原因 - 自動刷新狀態:', isAutoRefreshEnabled);
+    console.log('⏰ 觸發時間:', new Date().toLocaleString());
     
     try {
         // 嘗試從 Supabase 獲取數據
+        console.time('📡 數據獲取階段');
         const supabaseData = await fetchNewsFromSupabase();
+        console.timeEnd('📡 數據獲取階段');
         
-        console.log('Supabase 數據獲取結果:', {
+        console.log('📊 Supabase 數據獲取結果:', {
             hasData: !!supabaseData,
             dataLength: supabaseData?.length || 0,
             isArray: Array.isArray(supabaseData)
@@ -523,46 +859,75 @@ async function checkForUpdates() {
         
         if (supabaseData && supabaseData.length > 0) {
             // 檢查是否有新數據，優先使用rtime字段
+            console.time('🔍 數據比較階段');
             const latestNews = supabaseData[0];
             const latestTime = new Date(latestNews.rtime || latestNews.created_at).getTime();
             
-            console.log('最新新聞信息:', {
+            console.log('📊 最新新聞信息:', {
                 title: latestNews.title,
                 rtime: latestNews.rtime,
                 created_at: latestNews.created_at,
                 latestTime: latestTime,
                 lastUpdateTime: lastUpdateTime
             });
+            console.timeEnd('🔍 數據比較階段');
             
             if (!lastUpdateTime || latestTime > lastUpdateTime) {
-                console.log('發現新聞更新，使用 Supabase 數據');
+                console.log('✨ 發現新聞更新，使用 Supabase 數據');
+                console.time('🔄 數據更新階段');
+                
                 newsData = supabaseData;
+                filteredNewsData = [...newsData]; // 初始化篩選數據
                 lastUpdateTime = latestTime;
                 
+                console.timeEnd('🔄 數據更新階段');
+                
                 // 播放撕紙動畫並更新
+                console.time('🎬 動畫渲染階段');
                 await playRefreshAnimation();
+                console.timeEnd('🎬 動畫渲染階段');
+                
+                console.time('🖼️ 頁面渲染階段');
                 displayNewsList(newsData);
+                console.timeEnd('🖼️ 頁面渲染階段');
             } else {
-                console.log('沒有新的更新');
+                console.log('✅ 沒有新的更新，跳過渲染');
             }
         } else {
             // 使用模擬數據
             if (newsData.length === 0) {
-                console.log('Supabase 無數據，使用模擬數據');
+                console.log('⚠️ Supabase 無數據，使用模擬數據');
+                console.time('📝 模擬數據載入');
                 newsData = mockNewsData;
+                filteredNewsData = [...newsData]; // 初始化篩選數據
                 displayNewsList(newsData);
+                console.timeEnd('📝 模擬數據載入');
             }
         }
     } catch (error) {
-        console.error('檢查更新失敗:', error);
+        console.error('❌ 檢查更新失敗:', error);
         if (newsData.length === 0) {
-            console.log('錯誤處理：使用模擬數據');
+            console.log('🔧 錯誤處理：使用模擬數據');
             newsData = mockNewsData;
+            filteredNewsData = [...newsData]; // 初始化篩選數據
             displayNewsList(newsData);
         }
     } finally {
+        const updateEndTime = performance.now();
+        const totalUpdateTime = updateEndTime - updateStartTime;
+        console.timeEnd('🔄 完整更新流程時間');
+        console.log(`⚡ 總更新耗時: ${totalUpdateTime.toFixed(2)}ms`);
         
-        console.log('=== 檢查更新完成 ===');
+        // 更新性能指標
+        performanceMetrics.totalLoadTime = totalUpdateTime;
+        
+        // 如果加載時間過長，提供性能分析
+        if (totalUpdateTime > 2000) {
+            console.log('\n⚠️ 檢測到加載時間較長，正在分析性能...');
+            setTimeout(() => analyzePerformance(), 100);
+        }
+        
+        console.log('🏁 === 檢查更新完成 ===');
     }
 }
 
@@ -719,6 +1084,10 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Setting up AI analysis event delegation...');
         setupAIAnalysisEventDelegation();
         
+        // 設置篩選器事件監聽
+        console.log('Setting up news filter events...');
+        setupNewsFilterEvents();
+        
         // 設置手動載入按鈕事件監聽
         const manualLoadBtn = document.getElementById('manualLoadBtn');
         if (manualLoadBtn) {
@@ -735,6 +1104,32 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         } else {
             console.error('未找到手動載入按鈕元素 (manualLoadBtn)');
+        }
+        
+        // 設置性能分析按鈕事件監聽
+        const performanceAnalysisBtn = document.getElementById('performanceAnalysisBtn');
+        if (performanceAnalysisBtn) {
+            console.log('性能分析按鈕元素找到，設置事件監聽器');
+            performanceAnalysisBtn.addEventListener('click', () => {
+                console.log('性能分析按鈕被點擊');
+                analyzePerformance();
+            });
+        } else {
+            console.error('未找到性能分析按鈕元素 (performanceAnalysisBtn)');
+        }
+        
+        // 設置清除緩存按鈕事件監聽
+        const clearCacheBtn = document.getElementById('clearCacheBtn');
+        if (clearCacheBtn) {
+            console.log('清除緩存按鈕元素找到，設置事件監聽器');
+            clearCacheBtn.addEventListener('click', () => {
+                console.log('清除緩存按鈕被點擊');
+                clearCache();
+                // 清除緩存後立即重新加載數據
+                checkForUpdates();
+            });
+        } else {
+            console.error('未找到清除緩存按鈕元素 (clearCacheBtn)');
         }
         
         // 設置Dock導航事件監聽

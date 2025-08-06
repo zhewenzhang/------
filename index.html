@@ -26,6 +26,14 @@
             <div class="header-controls">
                 <span class="hint-text">點擊載入新聞 • Ctrl+R 手動刷新</span>
                 <button id="manualLoadBtn" class="manual-load-btn">載入新聞</button>
+                <button id="performanceAnalysisBtn" class="refresh-btn" title="性能分析" style="margin-left: 10px; background: #6c5ce7;">
+                    <i class="fas fa-chart-line"></i>
+                    性能分析
+                </button>
+                <button id="clearCacheBtn" class="refresh-btn" title="清除緩存" style="margin-left: 10px; background: #e74c3c;">
+                    <i class="fas fa-trash"></i>
+                    清除緩存
+                </button>
                 <div class="auto-refresh-control inline-control">
                     <label class="switch">
                         <input type="checkbox" id="autoRefreshToggle">
@@ -40,6 +48,22 @@
 
     <main class="main">
         <div class="container">
+            <!-- 新聞篩選器 -->
+            <div class="news-filter-container">
+                <div class="filter-header">
+                    <h3 class="filter-title">📰 新聞來源篩選</h3>
+                    <div class="filter-controls">
+                        <button id="clearFilters" class="clear-filters-btn">清除篩選</button>
+                        <span id="filterCount" class="filter-count">顯示全部</span>
+                    </div>
+                </div>
+                <div class="filter-tags-container">
+                    <div id="filterTags" class="filter-tags">
+                        <!-- 篩選標籤將動態生成 -->
+                    </div>
+                </div>
+            </div>
+            
             <div class="news-container">
                 <div id="newsList" class="news-list">
                     <div class="loading">正在載入新聞...</div>
