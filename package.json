@@ -1,0 +1,39 @@
+{
+  "name": "dave-ai-news-dashboard",
+  "version": "1.0.0",
+  "description": "Dave AI 新聞推送頁面 - 一個簡潔優雅的新聞展示頁面，採用 Apple 設計風格",
+  "main": "index.html",
+  "scripts": {
+    "start": "python -m http.server 3000",
+    "dev": "python -m http.server 3000",
+    "test": "echo \"No tests specified\"",
+    "setup": "cp config.example.js config.js"
+  },
+  "keywords": [
+    "news",
+    "dashboard",
+    "supabase",
+    "javascript",
+    "html",
+    "css",
+    "apple-design"
+  ],
+  "author": "Dave AI",
+  "license": "MIT",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.0.0"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-username/dave-ai-news-dashboard.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/dave-ai-news-dashboard/issues"
+  },
+  "homepage": "https://github.com/your-username/dave-ai-news-dashboard#readme",
+  "engines": {
+    "node": ">=14.0.0",
+    "python": ">=3.6.0"
+  }
+}

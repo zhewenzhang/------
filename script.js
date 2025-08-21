@@ -1,4 +1,8 @@
 // 報紙風格新聞推送頁面 JavaScript
+// 注意：此文件依賴 js/utils.js 中的公共函數
+
+// 從 utils.js 導入公共函數
+// 確保在使用前 utils.js 已經載入
 
 // 從配置文件獲取 Supabase 設置
 const config = window.SUPABASE_CONFIG || {
@@ -143,49 +147,16 @@ const mockNewsData = [
     }
 ];
 
-// 安全獲取DOM元素的函數
-function safeGetElement(id) {
-    const element = document.getElementById(id);
-    if (!element) {
-        console.warn(`元素 '${id}' 未找到`);
-    }
-    return element;
-}
-
-// 獲取DOM元素
-const tearAnimation = safeGetElement('tearAnimation');
-const refreshProgress = safeGetElement('refreshProgress');
-const refreshProgressBar = safeGetElement('refreshProgressBar');
-const refreshProgressText = safeGetElement('refreshProgressText');
-const refreshCompleteNotification = safeGetElement('refreshCompleteNotification');
-const worldTimeElement = safeGetElement('worldTime');
+// 獲取DOM元素 - 使用utils.js中的統一函數
+const tearAnimation = safeQuerySelector('#tearAnimation');
+const refreshProgress = safeQuerySelector('#refreshProgress');
+const refreshProgressBar = safeQuerySelector('#refreshProgressBar');
+const refreshProgressText = safeQuerySelector('#refreshProgressText');
+const refreshCompleteNotification = safeQuerySelector('#refreshCompleteNotification');
+const worldTimeElement = safeQuerySelector('#worldTime');
 
 // 將UTC時間轉換為北京時間並格式化（僅日期部分）
-function formatDateToBeijingTime(utcDateString) {
-    if (!utcDateString) return '';
-    
-    const date = new Date(utcDateString);
-    if (isNaN(date.getTime())) {
-        console.error('無效的日期字符串:', utcDateString);
-        return '';
-    }
-
-    // 使用 toLocaleString 方法並指定時區，獲取各個日期組件
-    const beijingDate = date.toLocaleString('zh-CN', {
-        timeZone: 'Asia/Shanghai',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-    });
-
-    // 直接使用 getFullYear, getMonth, getDate 方法獲取北京時間的日期組件
-    const beijingTime = new Date(date.toLocaleString('en-US', { timeZone: 'Asia/Shanghai' }));
-    const year = beijingTime.getFullYear();
-    const month = String(beijingTime.getMonth() + 1).padStart(2, '0');
-    const day = String(beijingTime.getDate()).padStart(2, '0');
-    
-    return `${year}年${month}月${day}日`;
-}
+// formatDateToBeijingTime 函數已移至 js/utils.js
 
 // 只顯示時間部分
 function formatNewsDateTime(createdAtString, timeString) {
@@ -220,50 +191,7 @@ function formatDate(dateString) {
     }
 }
 
-// 設置當前日期
-function updateWorldTime() {
-    const now = new Date();
-    const timeZones = document.querySelectorAll('.time-zone');
-    
-    if (timeZones.length === 0) {
-        // 如果沒有時區元素，靜默返回，不輸出警告
-        return;
-    }
-    
-    timeZones.forEach(zone => {
-        const timezone = zone.getAttribute('data-timezone');
-        const dateElement = zone.querySelector('.time-date');
-        const clockElement = zone.querySelector('.time-clock');
-        
-        if (!dateElement || !clockElement) {
-            console.warn(`時區 ${timezone} 缺少日期或時間元素`);
-            return;
-        }
-        
-        try {
-            // 获取指定时区的时间
-            const timeInZone = new Date(now.toLocaleString('en-US', { timeZone: timezone }));
-            
-            // 格式化日期 (MM/DD)
-            const month = (timeInZone.getMonth() + 1).toString().padStart(2, '0');
-            const day = timeInZone.getDate().toString().padStart(2, '0');
-            const dateStr = `${month}/${day}`;
-            
-            // 格式化时间 (HH:MM:SS)
-            const hours = timeInZone.getHours().toString().padStart(2, '0');
-            const minutes = timeInZone.getMinutes().toString().padStart(2, '0');
-            const seconds = timeInZone.getSeconds().toString().padStart(2, '0');
-            const timeStr = `${hours}:${minutes}:${seconds}`;
-            
-            dateElement.textContent = dateStr;
-            clockElement.textContent = timeStr;
-        } catch (error) {
-            console.error(`Error updating time for ${timezone}:`, error);
-            if (dateElement) dateElement.textContent = '--/--';
-            if (clockElement) clockElement.textContent = '--:--:--';
-        }
-    });
-}
+// updateWorldTime 函數已移至 utils.js，此處不再重複定義
 
 // 開始實時世界時間更新
 function startTimeUpdate() {
@@ -340,50 +268,7 @@ function createTagsHTML(tagString) {
 }
 
 // 創建新聞條目HTML
-function createNewsItemHTML(news) {
-    console.log('🔍 创建新闻项目:', news);
-    
-    const dateTime = formatNewsDateTime(news.created_at, news.time);
-    const title = news.title || '無標題';
-    const source = news.tag || '未知來源';
-    const content = news.content || '無內容描述';
-    const tagsHTML = createTagsHTML(news.tag);
-    
-    // 确保news.id存在
-    const newsId = news.id || Math.floor(Math.random() * 10000);
-    console.log('🔍 使用的newsId:', newsId);
-    
-    // 获取AI分析字段
-    const mood = news.mood || '';
-    const relation = news.relation || '';
-    const analyze = news.analyze || '';
-    
-    // 检查是否有AI分析数据
-    const hasAIData = mood || relation || analyze;
-    
-    return `
-        <div class="news-item" data-news-id="${newsId}">
-            <h2>${title}</h2>
-            <div class="news-meta">
-                <span>${dateTime}</span>
-                ${tagsHTML}
-            </div>
-            <p>${content}</p>
-            ${hasAIData ? `
-            <div class="ai-analysis-section">
-                <button class="ai-analysis-btn" data-news-id="${newsId}">
-                    <span class="ai-icon">✨</span>
-                    <span class="ai-text">AI 智能分析</span>
-                    <span class="ai-arrow">▼</span>
-                </button>
-                <div class="ai-analysis-content" id="ai-content-${newsId}" style="display: none;">
-                    <!-- AI分析内容将通过showAIAnalysisWithTypewriter函数动态生成 -->
-                </div>
-            </div>
-            ` : ''}
-        </div>
-    `;
-}
+// createNewsItemHTML 函數已移至 js/utils.js，使用時需傳入 { includeAIAnalysis: true } 選項
 
 // 顯示載入狀態
 function showLoadingNews() {
@@ -430,7 +315,7 @@ function displayNewsList(newsList) {
     
     // HTML生成階段
     console.time('🏗️ HTML生成');
-    const newsHTML = newsWithIds.map(news => createNewsItemHTML(news)).join('');
+    const newsHTML = newsWithIds.map(news => createNewsItemHTML(news, { includeAIAnalysis: true })).join('');
     console.timeEnd('🏗️ HTML生成');
     
     // DOM更新階段
@@ -663,7 +548,7 @@ function displayFilteredNews() {
         return;
     }
     
-    const newsHTML = filteredNewsData.map(news => createNewsItemHTML(news)).join('');
+    const newsHTML = filteredNewsData.map(news => createNewsItemHTML(news, { includeAIAnalysis: true })).join('');
     newsListElement.innerHTML = newsHTML;
     
     console.log(`顯示篩選後的新聞: ${filteredNewsData.length} 條`);
@@ -1205,40 +1090,7 @@ document.addEventListener('visibilitychange', () => {
 });
 
 // AI分析事件委托处理
-function setupAIAnalysisEventDelegation() {
-    // 使用事件委托处理AI分析按钮点击
-    document.addEventListener('click', (e) => {
-        if (e.target.closest('.ai-analysis-btn')) {
-            const button = e.target.closest('.ai-analysis-btn');
-            const newsId = button.getAttribute('data-news-id');
-            
-            console.log('🔍 点击了AI分析按钮:', {
-                button: button,
-                newsId: newsId,
-                buttonAttributes: Array.from(button.attributes).map(attr => `${attr.name}=${attr.value}`).join(', ')
-            });
-            
-            if (newsId && newsId !== 'null' && newsId !== 'undefined') {
-                // 不再将newsId转换为整数，保持为字符串
-                toggleAIAnalysis(newsId);
-            } else {
-                console.error('❌ 无效的newsId:', newsId);
-            }
-        }
-    });
-    
-    // 在页面加载完成后，打印所有AI分析按钮
-    setTimeout(() => {
-        const allButtons = document.querySelectorAll('.ai-analysis-btn');
-        console.log(`🔍 页面上共有 ${allButtons.length} 个AI分析按钮:`);
-        allButtons.forEach((btn, index) => {
-            console.log(`按钮 ${index + 1}:`, {
-                newsId: btn.getAttribute('data-news-id'),
-                attributes: Array.from(btn.attributes).map(attr => `${attr.name}=${attr.value}`).join(', ')
-            });
-        });
-    }, 2000);
-}
+// setupAIAnalysisEventDelegation 函數已移至 utils.js，此處不再重複定義
 
 // 返回顶部按钮功能
 function setupBackToTop() {
@@ -1564,370 +1416,432 @@ let isFirstExpand = {}; // 记录每个内容区域是否首次展开
 let isToggling = {}; // 防抖标记
 
 // AI 分析功能
+// 檢查防抖狀態
+function checkDebounceState(id) {
+    if (isToggling[id]) {
+        console.log('⏳ 正在切换中，忽略重复点击');
+        return true;
+    }
+    return false;
+}
+
+// 調試信息輸出
+function logDebugInfo() {
+    const allContentDivs = document.querySelectorAll('[id^="ai-content-"]');
+    const allButtons = document.querySelectorAll('.ai-analysis-btn');
+    
+    console.log('🔍 可用的AI内容元素:', allContentDivs.length);
+    Array.from(allContentDivs).forEach((div, index) => {
+        console.log(`内容区域 ${index + 1}:`, {
+            id: div.id,
+            display: div.style.display,
+            classList: Array.from(div.classList)
+        });
+    });
+    
+    console.log('🔍 可用的AI按钮:', allButtons.length);
+    Array.from(allButtons).forEach((btn, index) => {
+        console.log(`按钮 ${index + 1}:`, {
+            newsId: btn.getAttribute('data-news-id'),
+            attributes: Array.from(btn.attributes).map(attr => `${attr.name}=${attr.value}`).join(', ')
+        });
+    });
+}
+
+// 獲取DOM元素
+function getAnalysisElements(id) {
+    const contentDiv = document.getElementById(`ai-content-${id}`);
+    const button = document.querySelector(`.ai-analysis-btn[data-news-id="${id}"]`);
+    
+    if (!contentDiv || !button) {
+        console.error('❌ 元素未找到:', { 
+            id: id,
+            contentDivId: `ai-content-${id}`,
+            buttonSelector: `.ai-analysis-btn[data-news-id="${id}"]`,
+            contentDiv: !!contentDiv, 
+            button: !!button 
+        });
+        return null;
+    }
+    
+    return { contentDiv, button };
+}
+
+// 展開AI分析區域
+function expandAnalysis(contentDiv, button, id) {
+    console.log('📈 展开AI分析区域');
+    
+    // 檢查是否首次展開
+    if (!isFirstExpand[id]) {
+        console.log('⌨️ 首次展开，启动打字机效果');
+        isFirstExpand[id] = true;
+        showAIAnalysisWithTypewriter(contentDiv, id);
+    } else {
+        // 非首次展開，直接顯示內容
+        contentDiv.style.display = 'block';
+        setTimeout(() => {
+            contentDiv.classList.add('expanded');
+        }, 10);
+    }
+    
+    updateButtonState(button, true);
+}
+
+// 收起AI分析區域
+function collapseAnalysis(contentDiv, button) {
+    console.log('📉 收起AI分析区域');
+    
+    contentDiv.classList.remove('expanded');
+    setTimeout(() => {
+        contentDiv.style.display = 'none';
+    }, 600);
+    
+    updateButtonState(button, false);
+}
+
+// 更新按鈕狀態
+function updateButtonState(button, isExpanded) {
+    const arrow = button.querySelector('.ai-arrow');
+    
+    if (arrow) {
+        arrow.textContent = isExpanded ? '▲' : '▼';
+    }
+    
+    if (isExpanded) {
+        button.classList.add('active');
+    } else {
+        button.classList.remove('active');
+    }
+}
+
+// 添加視覺反饋
+function addVisualFeedback(button) {
+    button.style.transform = 'scale(0.95)';
+    setTimeout(() => {
+        button.style.transform = 'scale(1)';
+    }, 150);
+}
+
+// 設置和清除防抖標記
+function setDebounceFlag(id, value, delay = 0) {
+    if (delay > 0) {
+        setTimeout(() => {
+            isToggling[id] = value;
+        }, delay);
+    } else {
+        isToggling[id] = value;
+    }
+}
+
+// 主函式：切換AI分析
 function toggleAIAnalysis(newsId) {
     try {
         console.log('🎯 toggleAIAnalysis called with newsId:', newsId);
         
-        // 确保newsId是字符串
         const id = String(newsId);
         console.log('🔄 转换后的newsId:', id);
         
-        // 防抖检查
-        if (isToggling[id]) {
-            console.log('⏳ 正在切换中，忽略重复点击');
-            return;
-        }
+        // 防抖檢查
+        if (checkDebounceState(id)) return;
         
-        // 打印所有可用的AI内容元素和按钮，帮助调试
-        const allContentDivs = document.querySelectorAll('[id^="ai-content-"]');
-        const allButtons = document.querySelectorAll('.ai-analysis-btn');
+        // 調試信息
+        logDebugInfo();
         
-        console.log('🔍 可用的AI内容元素:', allContentDivs.length);
-        Array.from(allContentDivs).forEach((div, index) => {
-            console.log(`内容区域 ${index + 1}:`, {
-                id: div.id,
-                display: div.style.display,
-                classList: Array.from(div.classList)
-            });
-        });
+        // 獲取DOM元素
+        const elements = getAnalysisElements(id);
+        if (!elements) return;
         
-        console.log('🔍 可用的AI按钮:', allButtons.length);
-        Array.from(allButtons).forEach((btn, index) => {
-            console.log(`按钮 ${index + 1}:`, {
-                newsId: btn.getAttribute('data-news-id'),
-                attributes: Array.from(btn.attributes).map(attr => `${attr.name}=${attr.value}`).join(', ')
-            });
-        });
-        
-        const contentDiv = document.getElementById(`ai-content-${id}`);
-        const button = document.querySelector(`.ai-analysis-btn[data-news-id="${id}"]`);
-        
-        if (!contentDiv || !button) {
-            console.error('❌ 元素未找到:', { 
-                id: id,
-                contentDivId: `ai-content-${id}`,
-                buttonSelector: `.ai-analysis-btn[data-news-id="${id}"]`,
-                contentDiv: !!contentDiv, 
-                button: !!button 
-            });
-            return;
-        }
-        
-        const arrow = button.querySelector('.ai-arrow');
+        const { contentDiv, button } = elements;
         const isExpanded = contentDiv.classList.contains('expanded');
         
         console.log('📊 当前状态:', { isExpanded, display: contentDiv.style.display });
         
-        // 设置防抖标记
-        isToggling[id] = true;
+        // 設置防抖標記
+        setDebounceFlag(id, true);
         
+        // 根據當前狀態執行相應操作
         if (!isExpanded) {
-            // 展开 AI 分析
-            console.log('📈 展开AI分析区域');
-            
-            // 检查是否首次展开，如果是则应用打字机效果
-            if (!isFirstExpand[id]) {
-                console.log('⌨️ 首次展开，启动打字机效果');
-                isFirstExpand[id] = true;
-                
-                // 先启动打字机效果，在打字机效果中控制显示
-                showAIAnalysisWithTypewriter(contentDiv, id);
-            } else {
-                // 非首次展开，直接显示内容
-                contentDiv.style.display = 'block';
-                setTimeout(() => {
-                    contentDiv.classList.add('expanded');
-                }, 10);
-            }
-            
-            // 2. 按钮箭头变化
-            if (arrow) {
-                arrow.textContent = '▲';
-            }
-            
-            // 3. 添加active样式类
-            button.classList.add('active');
-            
+            expandAnalysis(contentDiv, button, id);
         } else {
-            // 收起 AI 分析
-            console.log('📉 收起AI分析区域');
-            
-            // 1. 收起AI分析区域
-            contentDiv.classList.remove('expanded');
-            setTimeout(() => {
-                contentDiv.style.display = 'none';
-            }, 600); // 修正为与CSS动画时间一致
-            
-            // 2. 按钮箭头变化
-            if (arrow) {
-                arrow.textContent = '▼';
-            }
-            
-            // 3. 移除active样式类
-            button.classList.remove('active');
+            collapseAnalysis(contentDiv, button);
         }
         
-        // 添加视觉反馈
-        button.style.transform = 'scale(0.95)';
-        setTimeout(() => {
-            button.style.transform = 'scale(1)';
-        }, 150);
+        // 添加視覺反饋
+        addVisualFeedback(button);
         
-        // 清除防抖标记
-        setTimeout(() => {
-            isToggling[id] = false;
-        }, 650);
+        // 清除防抖標記
+        setDebounceFlag(id, false, 650);
         
     } catch (error) {
         console.error('💥 Error in toggleAIAnalysis:', error);
-        // 出错时也要清除防抖标记
+        // 出錯時也要清除防抖標記
         isToggling[id] = false;
     }
 }
 
-// 处理分析内容，添加情绪颜色和股票标签
+// 處理情感傾向的顏色標記
+function processSentimentColors(content) {
+    let processedContent = content;
+    
+    // 處理正面情感詞彙
+    processedContent = processedContent.replace(/(正面|积极|乐观)/g, '<span class="sentiment-positive">$1</span>');
+    // 處理負面情感詞彙
+    processedContent = processedContent.replace(/(负面|消极|悲观)/g, '<span class="sentiment-negative">$1</span>');
+    // 處理中性情感詞彙
+    processedContent = processedContent.replace(/(中性|中立)/g, '<span class="sentiment-neutral">$1</span>');
+    
+    return processedContent;
+}
+
+// 定義股票標籤的正則表達式模式
+function getStockPatterns() {
+    return {
+        // 格式1: "公司名-代码.交易所"
+        pattern1: /"([^"]*-[A-Z0-9]+\.[A-Z]+)"/g,
+        // 格式2: 公司名-代码.交易所 (无引号)
+        pattern2: /([\u4e00-\u9fa5]+[\w\s]*-[A-Z0-9]+\.[A-Z]+)/g,
+        // 格式3: "公司名-代码" (纯代码格式)
+        pattern3: /"([\u4e00-\u9fa5]+[\w\s]*-[A-Z]+)"/g,
+        // 格式4: 公司名-代码 (无引号，无交易所后缀)
+        pattern4: /([\u4e00-\u9fa5A-Z]+[\w\s]*-[A-Z]+)(?![A-Z\.])/g,
+        // 格式5: "混合文本" (带引号的任意文本)
+        pattern5: /"([\u4e00-\u9fa5A-Za-z0-9\s]+)"/g
+    };
+}
+
+// 處理單一格式的股票標籤
+function processStockPattern(content, processedContent, pattern, formatType) {
+    const matches = content.match(pattern);
+    if (!matches) return processedContent;
+    
+    matches.forEach(match => {
+        let stockName, stockTag;
+        
+        if (formatType === 'quoted') {
+            // 帶引號的格式
+            stockName = match.replace(/"/g, '');
+            stockTag = `<span class="stock-tag">${stockName}</span>`;
+            
+            if (!processedContent.includes(stockTag)) {
+                processedContent = processedContent.replace(match, stockTag);
+            }
+        } else {
+            // 不帶引號的格式
+            stockTag = `<span class="stock-tag">${match}</span>`;
+            
+            if (!processedContent.includes(stockTag)) {
+                const escapedMatch = match.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                processedContent = processedContent.replace(new RegExp(escapedMatch, 'g'), stockTag);
+            }
+        }
+    });
+    
+    return processedContent;
+}
+
+// 處理關聯分析中的股票標籤
+function processRelationAnalysisStocks(content) {
+    // 先刪除方括號
+    let processedContent = content.replace(/\[|\]/g, '');
+    
+    const patterns = getStockPatterns();
+    
+    // 處理各種格式的股票標籤
+    processedContent = processStockPattern(content, processedContent, patterns.pattern1, 'quoted');
+    processedContent = processStockPattern(content, processedContent, patterns.pattern3, 'quoted');
+    processedContent = processStockPattern(content, processedContent, patterns.pattern5, 'quoted');
+    processedContent = processStockPattern(content, processedContent, patterns.pattern2, 'unquoted');
+    processedContent = processStockPattern(content, processedContent, patterns.pattern4, 'unquoted');
+    
+    return processedContent;
+}
+
+// 處理深度分析的格式化
+function processDeepAnalysisFormat(content) {
+    // 格式化分析點和答案
+    return content.replace(/#分析点(\d+)：([^#]*?)答：([^#]*?)(?=#分析点|$)/g, 
+        '<div class="analysis-point"><div class="question"><strong>分析点$1：</strong>$2</div><div class="answer"><strong>答：</strong>$3</div></div>');
+}
+
+// 主函式：處理分析內容，添加情緒顏色和股票標籤
 function processAnalysisContent(content, itemTitle) {
     let processedContent = content;
     
-    // 处理情感倾向的颜色
+    // 根據項目標題進行不同處理
     if (itemTitle === '情感倾向') {
-        // 处理正面情感词汇
-        processedContent = processedContent.replace(/(正面|积极|乐观)/g, '<span class="sentiment-positive">$1</span>');
-        // 处理负面情感词汇
-        processedContent = processedContent.replace(/(负面|消极|悲观)/g, '<span class="sentiment-negative">$1</span>');
-        // 处理中性情感词汇
-        processedContent = processedContent.replace(/(中性|中立)/g, '<span class="sentiment-neutral">$1</span>');
+        processedContent = processSentimentColors(processedContent);
     }
     
-    // 处理关联分析中的股票标签
     if (itemTitle === '关联分析') {
-        // 先删除方括号
-        processedContent = processedContent.replace(/\[|\]/g, '');
-        
-        // 匹配多种格式的股票标签
-        // 格式1: "公司名-代码.交易所"
-        const stockPattern1 = /"([^"]*-[A-Z0-9]+\.[A-Z]+)"/g;
-        // 格式2: 公司名-代码.交易所 (无引号)
-        const stockPattern2 = /([\u4e00-\u9fa5]+[\w\s]*-[A-Z0-9]+\.[A-Z]+)/g;
-        // 格式3: "公司名-代码" (纯代码格式，如"携程-TCOM")
-        const stockPattern3 = /"([\u4e00-\u9fa5]+[\w\s]*-[A-Z]+)"/g;
-        // 格式4: 公司名-代码 (无引号，无交易所后缀，如"A股-SSE")
-        const stockPattern4 = /([\u4e00-\u9fa5A-Z]+[\w\s]*-[A-Z]+)(?![A-Z\.])/g;
-        // 格式5: "混合文本" (带引号的任意文本，如"东南亚区域SDR")
-        const stockPattern5 = /"([\u4e00-\u9fa5A-Za-z0-9\s]+)"/g;
-        
-        // 处理带引号的标准股票标签 (格式1)
-        const matches1 = content.match(stockPattern1);
-        if (matches1) {
-            matches1.forEach(match => {
-                const stockName = match.replace(/"/g, '');
-                const stockTag = `<span class="stock-tag">${stockName}</span>`;
-                processedContent = processedContent.replace(match, stockTag);
-            });
-        }
-        
-        // 处理带引号的简化股票标签 (格式3)
-        const matches3 = processedContent.match(stockPattern3);
-        if (matches3) {
-            matches3.forEach(match => {
-                // 避免重复处理已经被span包裹的内容
-                if (!processedContent.includes(`<span class="stock-tag">${match.replace(/"/g, '')}</span>`)) {
-                    const stockName = match.replace(/"/g, '');
-                    const stockTag = `<span class="stock-tag">${stockName}</span>`;
-                    processedContent = processedContent.replace(match, stockTag);
-                }
-            });
-        }
-        
-        // 处理不带引号的股票标签 (格式2)
-        const matches2 = processedContent.match(stockPattern2);
-        if (matches2) {
-            matches2.forEach(match => {
-                // 避免重复处理已经被span包裹的内容
-                if (!processedContent.includes(`<span class="stock-tag">${match}</span>`)) {
-                    const stockTag = `<span class="stock-tag">${match}</span>`;
-                    processedContent = processedContent.replace(new RegExp(match.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), stockTag);
-                }
-            });
-        }
-        
-        // 处理无引号无交易所后缀的股票标签 (格式4)
-        const matches4 = processedContent.match(stockPattern4);
-        if (matches4) {
-            matches4.forEach(match => {
-                // 避免重复处理已经被span包裹的内容
-                if (!processedContent.includes(`<span class="stock-tag">${match}</span>`)) {
-                    const stockTag = `<span class="stock-tag">${match}</span>`;
-                    processedContent = processedContent.replace(new RegExp(match.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), stockTag);
-                }
-            });
-        }
-        
-        // 处理带引号的混合文本标签 (格式5)
-        const matches5 = processedContent.match(stockPattern5);
-        if (matches5) {
-            matches5.forEach(match => {
-                // 避免重复处理已经被span包裹的内容
-                const stockName = match.replace(/"/g, '');
-                if (!processedContent.includes(`<span class="stock-tag">${stockName}</span>`)) {
-                    const stockTag = `<span class="stock-tag">${stockName}</span>`;
-                    processedContent = processedContent.replace(match, stockTag);
-                }
-            });
-        }
+        processedContent = processRelationAnalysisStocks(processedContent);
     }
     
-    // 处理深度分析中的分析点格式
     if (itemTitle === '深度分析') {
-        // 格式化分析点和答案
-        processedContent = processedContent.replace(/#分析点(\d+)：([^#]*?)答：([^#]*?)(?=#分析点|$)/g, 
-            '<div class="analysis-point"><div class="question"><strong>分析点$1：</strong>$2</div><div class="answer"><strong>答：</strong>$3</div></div>');
+        processedContent = processDeepAnalysisFormat(processedContent);
     }
     
     return processedContent;
 }
 
 // 显示AI分析结果（带打字机效果）
+// 獲取新聞項目的AI分析數據
+function getNewsAnalysisData(newsId) {
+    const newsItem = newsData.find(item => item.id == newsId);
+    if (!newsItem) {
+        console.error('❌ News item not found for newsId:', newsId);
+        return null;
+    }
+    
+    return {
+        title: "",
+        analysisItems: [
+            {
+                title: "情感倾向",
+                content: newsItem.mood || "暂无情感分析数据",
+                score: "--"
+            },
+            {
+                title: "关联分析",
+                content: newsItem.relation || "暂无关联分析数据",
+                score: "--"
+            },
+            {
+                title: "深度分析",
+                content: newsItem.analyze || "暂无深度分析数据",
+                score: "--"
+            }
+        ]
+    };
+}
+
+// 創建隱藏的HTML結構
+function createHiddenAnalysisStructure(analysisData) {
+    return `
+        <div class="ai-analysis-title" style="opacity: 0; height: 0; margin: 0; padding: 0;"></div>
+        <div class="ai-analysis-items" style="opacity: 0; height: 0; margin: 0; padding: 0;">
+            ${analysisData.analysisItems.map((_, index) => `
+                <div class="analysis-item" data-index="${index}" style="opacity: 0; height: 0; margin: 0; padding: 0;">
+                    <div class="item-header">
+                        <h4 class="item-title"></h4>
+                        <span class="item-score"></span>
+                    </div>
+                    <p class="item-content"></p>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+// 準備打字機內容數組
+function prepareTypewriterContent(contentDiv, analysisData) {
+    const contentToType = [
+        {
+            element: contentDiv.querySelector('.ai-analysis-title'),
+            content: analysisData.title,
+            delay: 0
+        }
+    ];
+    
+    analysisData.analysisItems.forEach((item, index) => {
+        const itemElement = contentDiv.querySelector(`.analysis-item[data-index="${index}"]`);
+        if (itemElement) {
+            contentToType.push({
+                element: itemElement.querySelector('.item-title'),
+                content: item.title,
+                delay: 1000 + (index * 800)
+            });
+            contentToType.push({
+                element: itemElement.querySelector('.item-score'),
+                content: item.score,
+                delay: 1200 + (index * 800)
+            });
+            contentToType.push({
+                element: itemElement.querySelector('.item-content'),
+                content: item.content,
+                delay: 1400 + (index * 800),
+                isContent: true,
+                itemTitle: item.title
+            });
+        }
+    });
+    
+    return contentToType;
+}
+
+// 恢復元素樣式
+function restoreElementStyles(element) {
+    element.style.opacity = '1';
+    element.style.height = 'auto';
+    element.style.margin = '';
+    element.style.padding = '';
+}
+
+// 恢復容器樣式
+function restoreContainerStyles(element, contentDiv) {
+    if (element.classList.contains('item-title')) {
+        const itemContainer = element.closest('.analysis-item');
+        if (itemContainer) {
+            restoreElementStyles(itemContainer);
+        }
+        
+        // 如果是第一個分析項的標題，也要顯示分析項容器
+        if (element.closest('.analysis-item[data-index="0"]')) {
+            const itemsContainer = contentDiv.querySelector('.ai-analysis-items');
+            if (itemsContainer) {
+                restoreElementStyles(itemsContainer);
+            }
+        }
+    }
+}
+
+// 執行打字機效果
+function executeTypewriterEffects(contentToType, contentDiv) {
+    contentToType.forEach(({ element, content, delay, isContent, itemTitle }) => {
+        if (element) {
+            setTimeout(() => {
+                restoreElementStyles(element);
+                restoreContainerStyles(element, contentDiv);
+                
+                // 處理內容的特殊格式
+                if (isContent && itemTitle) {
+                    const processedContent = processAnalysisContent(content, itemTitle);
+                    typeWriterEffect(element, processedContent, typewriterSpeed, true);
+                } else {
+                    typeWriterEffect(element, content, typewriterSpeed);
+                }
+            }, delay);
+        }
+    });
+}
+
+// 主函式：顯示AI分析打字機效果
 function showAIAnalysisWithTypewriter(contentDiv, newsId) {
     try {
         console.log('⌨️ 开始打字机效果显示AI分析内容');
         
-        // 从新闻数据中获取真实的AI分析数据
-        const newsItem = newsData.find(item => item.id == newsId);
-        if (!newsItem) {
-            console.error('❌ News item not found for newsId:', newsId);
-            return;
-        }
+        // 獲取分析數據
+        const analysisData = getNewsAnalysisData(newsId);
+        if (!analysisData) return;
         
-        const analysisData = {
-            title: "",
-            analysisItems: [
-                {
-                    title: "情感倾向",
-                    content: newsItem.mood || "暂无情感分析数据",
-                    score: "--"
-                },
-                {
-                    title: "关联分析",
-                    content: newsItem.relation || "暂无关联分析数据",
-                    score: "--"
-                },
-                {
-                    title: "深度分析",
-                    content: newsItem.analyze || "暂无深度分析数据",
-                    score: "--"
-                }
-            ]
-        };
-        
-        // 先清空内容区域
+        // 清空內容區域並創建結構
         contentDiv.innerHTML = '';
+        contentDiv.innerHTML = createHiddenAnalysisStructure(analysisData);
         
-        // 创建完全隐藏的HTML结构
-        const htmlContent = `
-            <div class="ai-analysis-title" style="opacity: 0; height: 0; margin: 0; padding: 0;"></div>
-            <div class="ai-analysis-items" style="opacity: 0; height: 0; margin: 0; padding: 0;">
-                ${analysisData.analysisItems.map((_, index) => `
-                    <div class="analysis-item" data-index="${index}" style="opacity: 0; height: 0; margin: 0; padding: 0;">
-                        <div class="item-header">
-                            <h4 class="item-title"></h4>
-                            <span class="item-score"></span>
-                        </div>
-                        <p class="item-content"></p>
-                    </div>
-                `).join('')}
-            </div>
-        `;
-        
-        contentDiv.innerHTML = htmlContent;
-        
-        // 先显示容器但保持内容隐藏
+        // 顯示容器但保持內容隱藏
         contentDiv.style.display = 'block';
         setTimeout(() => {
             contentDiv.classList.add('expanded');
         }, 10);
         
-        // 定义要打字的内容和对应的元素
-        const contentToType = [
-            {
-                element: contentDiv.querySelector('.ai-analysis-title'),
-                content: analysisData.title,
-                delay: 0
-            }
-        ];
-        
-        // 添加分析项
-        analysisData.analysisItems.forEach((item, index) => {
-            const itemElement = contentDiv.querySelector(`.analysis-item[data-index="${index}"]`);
-            if (itemElement) {
-                contentToType.push({
-                    element: itemElement.querySelector('.item-title'),
-                    content: item.title,
-                    delay: 1000 + (index * 800)
-                });
-                contentToType.push({
-                    element: itemElement.querySelector('.item-score'),
-                    content: item.score,
-                    delay: 1200 + (index * 800)
-                });
-                contentToType.push({
-                    element: itemElement.querySelector('.item-content'),
-                    content: item.content,
-                    delay: 1400 + (index * 800),
-                    isContent: true,
-                    itemTitle: item.title
-                });
-            }
-        });
-        
-        // 依次对每个元素应用打字机效果
-        contentToType.forEach(({ element, content, delay, isContent, itemTitle }) => {
-            if (element) {
-                setTimeout(() => {
-                    // 在开始打字前恢复元素的正常样式
-                    element.style.opacity = '1';
-                    element.style.height = 'auto';
-                    element.style.margin = '';
-                    element.style.padding = '';
-                    
-                    // 如果是分析项容器，也要恢复其父容器的样式
-                    if (element.classList.contains('item-title')) {
-                        const itemContainer = element.closest('.analysis-item');
-                        if (itemContainer) {
-                            itemContainer.style.opacity = '1';
-                            itemContainer.style.height = 'auto';
-                            itemContainer.style.margin = '';
-                            itemContainer.style.padding = '';
-                        }
-                    }
-                    
-                    // 如果是第一个分析项的标题，也要显示分析项容器
-                    if (element.classList.contains('item-title') && element.closest('.analysis-item[data-index="0"]')) {
-                        const itemsContainer = contentDiv.querySelector('.ai-analysis-items');
-                        if (itemsContainer) {
-                            itemsContainer.style.opacity = '1';
-                            itemsContainer.style.height = 'auto';
-                            itemsContainer.style.margin = '';
-                            itemsContainer.style.padding = '';
-                        }
-                    }
-                    
-                    // 处理内容的特殊格式
-                    if (isContent && itemTitle) {
-                        const processedContent = processAnalysisContent(content, itemTitle);
-                        typeWriterEffect(element, processedContent, typewriterSpeed, true);
-                    } else {
-                        typeWriterEffect(element, content, typewriterSpeed);
-                    }
-                }, delay);
-            }
-        });
+        // 準備並執行打字機效果
+        const contentToType = prepareTypewriterContent(contentDiv, analysisData);
+        executeTypewriterEffects(contentToType, contentDiv);
         
         console.log('✅ 打字机效果设置完成');
         
     } catch (error) {
         console.error('💥 打字机效果出错:', error);
-        // 出错时直接显示内容
+        // 出錯時直接顯示內容
         showAIAnalysisResults(newsId);
     }
 }
@@ -2048,126 +1962,7 @@ function showAIAnalysisResults(newsId) {
 }
 
 // 打字機效果函數（增強版）
-function typeWriterEffect(elementId, text, speed = 80, isHTML = false) {
-    try {
-        console.log(`⌨️ Starting typewriter effect for ${elementId}`);
-        
-        const element = typeof elementId === 'string' ? 
-            document.getElementById(elementId) : elementId;
-        
-        if (!element) {
-            console.error('❌ Element not found:', elementId);
-            return;
-        }
-        
-        // 清空元素內容
-        element.innerHTML = '';
-        element.style.minHeight = '20px'; // 確保有最小高度
-        
-        let i = 0;
-        const textLength = text.length;
-        
-        // 添加光标动画样式（如果还没有）
-        if (!document.querySelector('#typewriter-styles')) {
-            const style = document.createElement('style');
-            style.id = 'typewriter-styles';
-            style.textContent = `
-                @keyframes blink {
-                    0%, 50% { opacity: 1; }
-                    51%, 100% { opacity: 0; }
-                }
-                .typewriter-cursor {
-                    animation: blink 1s infinite;
-                    color: #007bff;
-                    font-weight: bold;
-                }
-            `;
-            document.head.appendChild(style);
-        }
-        
-        // 添加光标
-        const cursor = document.createElement('span');
-        cursor.className = 'typewriter-cursor';
-        cursor.textContent = '|';
-        element.appendChild(cursor);
-        
-        function typeChar() {
-            if (i < textLength) {
-                const char = text.charAt(i);
-                
-                // 在光标前插入字符
-                if (isHTML) {
-                    // 如果是HTML内容，需要特殊处理
-                    const currentText = text.substring(0, i + 1);
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = currentText;
-                    
-                    // 清除光标前的内容并重新插入
-                    const cursorParent = cursor.parentNode;
-                    while (cursorParent.firstChild !== cursor) {
-                        cursorParent.removeChild(cursorParent.firstChild);
-                    }
-                    
-                    // 插入新的HTML内容
-                    while (tempDiv.firstChild) {
-                        cursorParent.insertBefore(tempDiv.firstChild, cursor);
-                    }
-                } else {
-                    const textNode = document.createTextNode(char);
-                    element.insertBefore(textNode, cursor);
-                }
-                
-                // 動態調整容器高度
-                const container = element.closest('.ai-analysis-content');
-                if (container) {
-                    container.style.height = 'auto';
-                }
-                
-                // 滾動到可見區域
-                if (i % 15 === 0) { // 每15個字符檢查一次
-                    element.scrollIntoView({ 
-                        behavior: 'smooth', 
-                        block: 'nearest' 
-                    });
-                }
-                
-                i++;
-                
-                // 根據字符類型調整速度
-                let currentSpeed = speed;
-                if (char === '。' || char === '！' || char === '？') {
-                    currentSpeed = speed * 4; // 句號後停頓更久
-                } else if (char === '，' || char === '、') {
-                    currentSpeed = speed * 2.5; // 逗號後稍作停頓
-                } else if (char === ' ') {
-                    currentSpeed = speed * 0.5; // 空格稍快一些
-                }
-                
-                setTimeout(typeChar, currentSpeed);
-            } else {
-                // 打字完成，移除光标
-                setTimeout(() => {
-                    if (cursor.parentNode) {
-                        cursor.parentNode.removeChild(cursor);
-                    }
-                }, 500);
-                console.log(`✅ Typewriter effect completed for ${elementId}`);
-            }
-        }
-        
-        // 開始打字
-        setTimeout(typeChar, 300);
-        
-    } catch (error) {
-        console.error('💥 Error in typeWriterEffect:', error);
-        // 如果出錯，直接顯示完整文本
-        const element = typeof elementId === 'string' ? 
-            document.getElementById(elementId) : elementId;
-        if (element) {
-            element.innerHTML = text;
-        }
-    }
-}
+// typeWriterEffect 函數已移至 utils.js，此處不再重複定義
 
 // 旋轉文字動畫功能
 class RotatingText {

@@ -1,0 +1,109 @@
+# 依賴和構建文件
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dist/
+build/
+.cache/
+
+# 環境配置和敏感資訊
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+config.js
+
+# 部署相關
+.vercel/
+.netlify/
+.firebase/
+
+# 日誌文件
+*.log
+logs/
+
+# 系統文件
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# IDE 和編輯器
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 臨時文件
+*.tmp
+*.temp
+.tmp/
+.temp/
+
+# 測試覆蓋率報告
+coverage/
+.nyc_output/
+
+# 運行時文件
+*.pid
+*.seed
+*.pid.lock
+
+# 可選的 npm 緩存目錄
+.npm
+
+# 可選的 eslint 緩存
+.eslintcache
+
+# 可選的 REPL 歷史
+.node_repl_history
+
+# 輸出的二進制文件
+*.exe
+*.dll
+*.so
+*.dylib
+
+# 壓縮文件
+*.zip
+*.tar.gz
+*.rar
+
+# 備份文件
+*.bak
+*.backup
+*.old
+
+# 本地數據庫文件
+*.sqlite
+*.db
+
+# Python 相關（如果有 Python 腳本）
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+PIPFILE.lock

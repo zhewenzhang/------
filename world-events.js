@@ -1,4 +1,5 @@
-// 世界事件页面JavaScript
+// 世界事件頁面 JavaScript
+// 注意：此文件依賴 js/utils.js 中的公共函數
 
 // 全局变量
 let currentTheme = localStorage.getItem('theme') || 'dark';
@@ -45,17 +46,8 @@ function initializeTheme() {
     }
 }
 
-// 主题切换
-function toggleTheme() {
-    currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', currentTheme);
-    localStorage.setItem('theme', currentTheme);
-    
-    // 更新饼图主题
-    if (moodChart) {
-        updateChartTheme();
-    }
-}
+// toggleTheme 函數已移至 utils.js，此處不再重複定義
+// 注意：如需更新圖表主題，請在調用 utils.js 的 toggleTheme 後手動調用 updateChartTheme()
 
 // 更新图表主题
 function updateChartTheme() {
@@ -79,40 +71,7 @@ function initializeWorldTime() {
     updateWorldTime();
 }
 
-// 更新世界时间
-function updateWorldTime() {
-    const timeZones = document.querySelectorAll('.time-zone');
-    
-    timeZones.forEach(zone => {
-        const timezone = zone.getAttribute('data-timezone');
-        const now = new Date();
-        
-        // 格式化日期 (MM/DD)
-        const dateOptions = {
-            timeZone: timezone,
-            month: '2-digit',
-            day: '2-digit'
-        };
-        const dateString = now.toLocaleDateString('en-US', dateOptions);
-        
-        // 格式化时间 (HH:MM:SS)
-        const timeOptions = {
-            timeZone: timezone,
-            hour12: false,
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
-        };
-        const timeString = now.toLocaleTimeString('en-US', timeOptions);
-        
-        // 更新显示
-        const dateElement = zone.querySelector('.time-date');
-        const clockElement = zone.querySelector('.time-clock');
-        
-        if (dateElement) dateElement.textContent = dateString;
-        if (clockElement) clockElement.textContent = timeString;
-    });
-}
+// updateWorldTime 函數已移至 utils.js，此處不再重複定義
 
 // 返回顶部功能
 function initializeBackToTop() {

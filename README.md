@@ -47,17 +47,25 @@
 
 ### 1. 配置 Supabase
 
-1. 打開 `config.js` 文件
-2. 替換 `YOUR_ANON_KEY_HERE` 為您的 Supabase 匿名密鑰
-3. 確認項目 URL 和表名稱正確
+1. 複製配置模板文件：
+   ```bash
+   cp config.example.js config.js
+   ```
+
+2. 編輯 `config.js` 文件：
+   - 替換 `YOUR_SUPABASE_URL_HERE` 為您的 Supabase 項目 URL
+   - 替換 `YOUR_ANON_KEY_HERE` 為您的 Supabase 匿名密鑰
+   - 確認表名稱正確
 
 ```javascript
 const SUPABASE_CONFIG = {
-    url: 'https://mayplvpysdjpnytpevnc.supabase.co',
+    url: 'https://your-project.supabase.co',
     anonKey: '您的實際匿名密鑰',
-    tableName: 'n8n_CLS_news'
+    tableName: 'your_table_name'
 };
 ```
+
+⚠️ **安全注意事項**: `config.js` 文件包含敏感信息，已被 `.gitignore` 排除，請勿提交到版本控制系統。
 
 ### 2. 獲取 Supabase 匿名密鑰
 

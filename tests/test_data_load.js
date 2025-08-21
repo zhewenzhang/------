@@ -25,53 +25,9 @@ function displayLog(message) {
     console.log(message); // 同時輸出到控制台
 }
 
-// 將UTC時間轉換為北京時間並格式化
-function formatDateToBeijingTime(utcDateString) {
-    if (!utcDateString) return '';
-    const date = new Date(utcDateString);
-    if (isNaN(date.getTime())) {
-        console.error('無效的日期字符串:', utcDateString);
-        return '';
-    }
+// formatDateToBeijingTime 函數已移至 ../js/utils.js
 
-    const beijingTime = new Date(date.getTime() + (8 * 60 * 60 * 1000));
-
-    const year = beijingTime.getUTCFullYear();
-    const month = (beijingTime.getUTCMonth() + 1).toString().padStart(2, '0');
-    const day = beijingTime.getUTCDate().toString().padStart(2, '0');
-    const hours = beijingTime.getUTCHours().toString().padStart(2, '0');
-    const minutes = beijingTime.getUTCMinutes().toString().padStart(2, '0');
-    const seconds = beijingTime.getUTCSeconds().toString().padStart(2, '0');
-
-    return `${year}年${month}月${day}日 ${hours}:${minutes}:${seconds}`;
-}
-
-// 創建新聞條目HTML
-function createNewsItemHTML(news) {
-    console.log('新聞項數據:', news);  // 添加日誌記錄新聞數據
-    const rtime = news.rtime ? formatDateToBeijingTime(news.rtime) : '未知';
-    if (!news.rtime) {
-        console.warn('新聞項缺少 rtime 字段:', news.id);
-    }
-    
-    // 智能字段映射 - 根据 n8n_CLS_news 表字段结构适配
-    const title = news.title || '无标题';
-    const source = news.tag || '未知来源';  // 使用 tag 字段作为来源
-    const content = news.content || '无内容描述';
-    
-    return `
-        <div class="news-item">
-            <h2>${title}</h2>
-            <div class="news-meta">
-                <span>來源: ${source}</span> |
-                <span>發布時間: ${rtime}</span>
-                ${news.category ? `| <span>分類: ${news.category}</span>` : ''}
-                ${news.tag ? `| <span>標籤: #${news.tag}</span>` : ''}
-            </div>
-            <p>${content}</p>
-        </div>
-    `;
-}
+// createNewsItemHTML 函數已移至 ../js/utils.js
 
 // 從 Supabase 獲取新聞數據並顯示
 async function fetchAndDisplayNews() {
@@ -162,7 +118,7 @@ async function fetchAndDisplayNews() {
 
             newsListElement.innerHTML = ''; // 清空載入提示
             data.forEach(news => {
-                newsListElement.innerHTML += createNewsItemHTML(news);
+                newsListElement.innerHTML += createNewsItemHTML(news, { includeAIAnalysis: false });
             });
         } else {
             newsListElement.innerHTML = '<p>沒有找到任何新聞。</p>';
