@@ -1,0 +1,28 @@
+{
+  "name": "news-dashboard",
+  "type": "static",
+  "buildCommand": "",
+  "outputDirectory": ".",
+  "installCommand": "",
+  "framework": "static",
+  "nodeVersion": "18",
+  "environmentVariables": {},
+  "routes": [
+    {
+      "src": "/",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/aurora",
+      "dest": "/index-aurora.html"
+    },
+    {
+      "src": "/daily-summary",
+      "dest": "/daily-summary.html"
+    },
+    {
+      "src": "/world-events",
+      "dest": "/world-events.html"
+    }
+  ]
+}
